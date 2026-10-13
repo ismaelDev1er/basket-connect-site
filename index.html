@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Basket Connect</title>
+<style>
+:root{--bg:#15171c;--s1:#1e2128;--s2:#272b34;--tx:#eef0f5;--mu:#9aa1b2;--or:#ff7a1a;--am:#ffb347;--bd:rgba(255,255,255,.08);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}
+.bg i{position:absolute;width:44vmax;height:44vmax;border-radius:50%;filter:blur(90px);opacity:.2;animation:dr 24s ease-in-out infinite alternate}
+.bg i:nth-child(1){background:var(--or);top:-14vmax;left:-10vmax}.bg i:nth-child(2){background:#6d4aff;bottom:-16vmax;right:-10vmax;animation-delay:-8s}
+@keyframes dr{to{transform:translate(7vmax,5vmax) scale(1.1)}}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+:focus-visible{outline:2px solid var(--am);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1100px;margin:auto;padding:0 18px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 0;flex-wrap:wrap}
+.logo{font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.ball{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--am),var(--or));animation:bounce 2.4s ease-in-out infinite}
+@keyframes bounce{50%{transform:translateY(-4px)}}
+nav{display:flex;gap:4px;background:var(--s1);border:1px solid var(--bd);border-radius:999px;padding:4px;flex-wrap:wrap}
+nav button{border:0;background:none;color:var(--mu);font:inherit;padding:8px 16px;border-radius:999px;cursor:pointer;transition:.25s}
+nav button[aria-selected=true]{background:var(--s2);color:var(--tx)}
+.view{animation:up .45s cubic-bezier(.2,.7,.2,1) both}
+.hero{padding:clamp(40px,9vw,90px) 0 24px;max-width:640px}
+.hero h1{font-size:clamp(2rem,6vw,3.3rem);line-height:1.08;letter-spacing:-.03em;margin:0 0 14px}
+.hero h1 span{background:linear-gradient(90deg,var(--or),var(--am));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mu);margin:0 0 24px;font-size:1.08rem}
+.btn{border:0;cursor:pointer;font:inherit;font-weight:700;color:#1a1204;padding:12px 22px;border-radius:12px;background:linear-gradient(135deg,var(--or),var(--am));transition:transform .2s,box-shadow .25s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px -8px rgba(255,122,26,.6)}.btn:active{transform:scale(.97)}
+.btn.g{background:var(--s2);color:var(--tx)}.btn.g:hover{box-shadow:none}.btn:disabled{opacity:.5;pointer-events:none}
+.panel{background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:22px}
+input,select,textarea{font:inherit;color:var(--tx);background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--or);outline:0;box-shadow:0 0 0 3px rgba(255,122,26,.2)}
+label{display:grid;gap:6px;font-size:.85rem;color:var(--mu)}
+.form{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.full{grid-column:1/-1}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:16px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
+.empty{grid-column:1/-1;text-align:center;padding:28px;color:var(--mu)}
+.m-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:5px}
+.delmsg{border:1px solid var(--bd);background:transparent;color:var(--mu);border-radius:8px;padding:3px 8px;cursor:pointer;font:inherit;font-size:.78rem}
+.delmsg:hover{color:#ff8d8d;border-color:#ff8d8d}
+@media(max-width:520px){.wrap{padding-inline:12px}.panel{padding:16px}nav{border-radius:16px}nav button{padding:7px 10px;font-size:.9rem}.send .btn{padding:10px 13px}}
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:20px;animation:up .5s cubic-bezier(.2,.7,.2,1) both;transition:transform .3s,border-color .3s,box-shadow .3s}
+.card:hover{transform:scale(1.03);border-color:rgba(255,122,26,.5);box-shadow:0 12px 30px -14px rgba(255,122,26,.5)}
+.av{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--or),var(--am));color:#1a1204;margin-bottom:10px;overflow:hidden;flex:none}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.card h3{margin:0;font-size:1.05rem}.card small{color:var(--mu)}.card p{color:var(--mu);margin:8px 0 0;font-size:.92rem}
+.pill{display:inline-block;font-size:.75rem;padding:2px 10px;border-radius:999px;background:var(--s2);color:var(--am);margin-right:6px}
+.chat{display:flex;flex-direction:column;height:max(460px,calc(100vh - 190px));height:max(460px,calc(100dvh - 190px));margin-top:8px}
+.msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px}
+.mw{display:flex;flex-direction:column;align-items:flex-start;max-width:85%}
+.mw.new{animation:up .3s both}.mw.me{align-self:flex-end;align-items:flex-end}
+.m{background:var(--s2);border-radius:14px 14px 14px 4px;padding:10px 14px;font-size:1.02rem;overflow-wrap:anywhere;max-width:100%}
+.m.me{background:rgba(255,122,26,.18);border-radius:14px 14px 4px 14px}
+.m b{font-size:.78rem;color:var(--am);display:block}.m span{font-size:.7rem;color:var(--mu)}
+.rx{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.rb{border:1px solid var(--bd);background:var(--s1);color:var(--mu);border-radius:999px;padding:2px 10px;font:inherit;font-size:.85rem;cursor:pointer;opacity:.55;transition:opacity .2s,transform .2s,background .2s}
+.rb:hover,.rb.has{opacity:1}.rb:hover{transform:scale(1.12)}.rb.on{opacity:1;background:rgba(255,122,26,.22);border-color:var(--or);color:var(--tx)}
+.bdg{background:var(--or);color:#1a1204;border-radius:999px;font-size:.72rem;font-weight:800;padding:1px 7px;margin-left:4px}
+.send{display:flex;gap:8px;margin-top:12px}
+.note{font-size:.85rem;color:var(--mu);background:var(--s2);border-radius:12px;padding:12px 14px;margin-top:14px}
+.event-poster{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:var(--s2);display:block;margin-bottom:14px}
+.event-meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.event-meta span{font-size:.78rem;background:var(--s2);border-radius:999px;padding:4px 9px;color:var(--am)}
+.event-card{overflow:hidden}.event-card .event-poster{transition:transform .35s}.event-card:hover .event-poster{transform:scale(1.02)}.event-actions{display:flex;justify-content:flex-end;margin-top:14px}
+.event-empty{grid-column:1/-1;text-align:center;padding:30px;color:var(--mu)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--s2);border:1px solid var(--bd);padding:10px 18px;border-radius:999px;animation:up .3s both;z-index:9}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* Thème clair Basket Connect — adapté à GitHub Pages */
+:root{--bg:#f5f6f8;--s1:#fff;--s2:#eef0f3;--tx:#20242b;--mu:#626b78;--or:#e86b16;--am:#f6a83d;--bd:#dfe3e8;color-scheme:light}
+body{background:var(--bg);color:var(--tx)}
+.bg i{opacity:.07;filter:blur(110px)}
+.wrap{max-width:1050px}
+.top{border-bottom:1px solid var(--bd);margin-bottom:6px}
+nav{background:#fff;border-color:var(--bd);border-radius:12px}
+nav button[aria-selected=true]{background:#f1f2f4;color:var(--tx)}
+.panel,.card,.chat{background:#fff;border-color:var(--bd);box-shadow:none}
+.card{border-radius:14px}
+.card:hover{transform:translateY(-2px);border-color:#e86b1677;box-shadow:0 8px 22px -16px #e86b16}
+.pill{background:#fff2e7;color:#a7480a}
+input,select,textarea{background:#fff;color:var(--tx);border-color:var(--bd)}
+input:focus,select:focus,textarea:focus{border-color:var(--or);box-shadow:0 0 0 3px #e86b1620}
+.note{background:#f1f2f4;color:var(--mu)}
+.m{background:#f0f1f4}.m.me{background:#fff0e3}.m b{color:#a7480a}
+.rb{background:#fff;color:var(--mu);border-color:var(--bd)}.rb.on{background:#fff0e3;color:#a7480a}
+.event-meta span{background:#fff2e7;color:#a7480a}
+.toast{background:#20242b;color:#fff;border-color:#20242b}
+.delmsg{border-color:var(--bd)}
+.hero{padding-top:clamp(34px,7vw,72px)}
+.logo{letter-spacing:-.035em}
+@media(max-width:600px){.top{align-items:flex-start}.top nav{width:100%;display:flex;flex-wrap:wrap}.top nav button{flex:1 1 auto;padding:8px 10px}}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><i></i><i></i></div>
+<div class="wrap">
+ <div class="top"><div class="logo"><span class="ball"></span>Basket Connect</div>
+ <nav role="tablist" aria-label="Sections" id="nv"></nav></div>
+ <main id="v" class="view" tabindex="-1"></main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
+<script>
+(function(){
+"use strict";
+/* ====== À REMPLIR (Supabase > Project Settings > API) ====== */
+var SUPABASE_URL="https://jaeyzrwaehxlgqzwgbxw.supabase.co";
+var SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphZXl6cndhZWh4bGdxendnYnh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MzgwMzAsImV4cCI6MjEwNzQxNDAzMH0.qOXgX7FH5nEF1U-a2-P9bPbYabnnTMhH7OjdZpxlUWI";
+/* La clé "anon" est publique par conception : la sécurité vient des règles RLS de setup.sql. */
+
+var $=function(s,e){return (e||document).querySelector(s)};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var POS=["Meneur","Arrière","Ailier","Ailier fort","Pivot"],LVL=["Loisir","Club","Régional","National"];
+var S={view:"home",user:null,players:[],msgs:[],mode:"in",ch:null,reacts:{},unread:0,maxId:0,boot:false,drawn:null,sig:null};
+var RX=[["like","👍","J’aime"],["heart","❤️","Cœur"],["smile","😊","Sourire"]];
+var main=$("#v"),sb=null;
+var configured=SUPABASE_URL.indexOf("REMPLACEZ")<0&&window.supabase;
+if(configured)sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+function toast(t){var e=document.createElement("div");e.className="toast";e.setAttribute("role","status");e.textContent=t;document.body.appendChild(e);setTimeout(function(){e.remove()},3000)}
+function ini(n){return esc((n||"?").trim().charAt(0).toUpperCase())}
+function avh(p){var a=p&&p.photo;return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(a||"")?'<img alt="" src="'+a+'">':ini(p&&p.pseudo)}
+function shrink(file){return new Promise(function(ok,ko){var r=new FileReader();r.onerror=ko;r.onload=function(){var i=new Image();i.onerror=ko;i.onload=function(){var s=160,c=document.createElement("canvas");c.width=c.height=s;var m=Math.min(i.width,i.height),g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,s,s);g.drawImage(i,(i.width-m)/2,(i.height-m)/2,m,m,0,0,s,s);ok(c.toDataURL("image/jpeg",.8))};i.src=r.result};r.readAsDataURL(file)})}
+function mine(){return S.players.filter(function(p){return S.user&&p.id===S.user.id})[0]}
+
+function nav(){
+ var t=[["home","Accueil"]].concat(S.user?[["players","Joueurs"],["events","Affiches"],["chat","Messages"],["me","Mon profil"]]:[["auth","Connexion"]]);
+ $("#nv").innerHTML=t.map(function(x){var g=x[0]==="chat"&&S.unread?'<span class="bdg">'+(S.unread>9?"9+":S.unread)+'</span>':"";return '<button role="tab" data-v="'+x[0]+'" aria-selected="'+(S.view===x[0])+'">'+x[1]+g+'</button>'}).join("")
+ +(S.user&&"Notification" in window&&Notification.permission==="default"?'<button data-v="bell" title="Activer les notifications" aria-label="Activer les notifications">🔔</button>':"")
+ +(S.user?'<button data-v="out">Déconnexion</button>':"");
+ document.title=(S.unread?"("+S.unread+") ":"")+"Basket Connect"
+}
+$("#nv").onclick=function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.dataset.v==="out"){sb.auth.signOut();return}
+ if(b.dataset.v==="bell"){Notification.requestPermission().then(function(p){toast(p==="granted"?"Notifications activées":"Notifications non autorisées");nav()});return}
+ setView(b.dataset.v)};
+function setView(v){S.view=v;if(v==="chat")S.unread=0;main.classList.remove("view");void main.offsetWidth;main.classList.add("view");nav();draw()}
+function draw(){
+ nav();
+ if(!configured){var why=SUPABASE_URL.indexOf("REMPLACEZ")>-1?"Ce fichier n’est pas la version configurée : l’adresse du projet est absente. Retéléchargez le dernier index.html.":"La bibliothèque Supabase n’a pas pu se charger. Vérifiez votre connexion Internet et désactivez temporairement tout bloqueur (antivirus, bloqueur de publicités, réseau d’entreprise ou d’école).";main.innerHTML='<div class="panel" style="margin-top:24px"><b>Le site ne peut pas démarrer.</b><p style="color:var(--mu)">'+why+'</p></div>';return}
+ var v=S.view;
+ if(v!=="home"&&!S.user)v="auth";
+ if(v==="home")home();else if(v==="auth")auth();else if(v==="players")players();else if(v==="events")events();else if(v==="chat")chat();else profile()
+}
+function home(){
+ main.innerHTML='<section class="hero"><h1>Une seule plateforme pour <span>tous les basketteurs.</span></h1><p>Créez votre profil, découvrez des basketteurs par poste, niveau ou ville, puis échangez dans une communauté dédiée au basketball.</p><button class="btn" id="go">'+(S.user?(mine()?"Voir les joueurs":"Compléter mon profil"):"Je m’inscris")+'</button></section>';
+ $("#go").onclick=function(){if(!S.user){S.mode="up";setView("auth")}else setView(mine()?"players":"me")}
+}
+function auth(){
+ var up=S.mode==="up";
+ main.innerHTML='<h2 style="margin:24px 0 12px">'+(up?"Inscription":"Connexion")+'</h2><form class="panel form" id="af" style="max-width:460px">'+
+ '<label class="full">Email<input id="em" type="email" required autocomplete="email"></label>'+
+ '<label class="full">Mot de passe (8 caractères minimum)<input id="pw" type="password" required minlength="8" autocomplete="'+(up?"new-password":"current-password")+'"></label>'+
+ '<div class="full row"><button class="btn" type="submit">'+(up?"Créer mon compte":"Me connecter")+'</button><button type="button" class="btn g" id="sw">'+(up?"J’ai déjà un compte":"Créer un compte")+'</button></div></form>';
+ $("#sw").onclick=function(){S.mode=up?"in":"up";auth()};
+ $("#af").onsubmit=async function(e){e.preventDefault();var b=e.submitter;b.disabled=true;var c={email:$("#em").value.trim(),password:$("#pw").value};
+  var r=up?await sb.auth.signUp(c):await sb.auth.signInWithPassword(c);b.disabled=false;
+  if(r.error){toast(up?"Inscription impossible : "+r.error.message:"Email ou mot de passe incorrect");return}
+  if(up&&!r.data.session)toast("Compte créé : confirmez votre email puis connectez-vous")}
+}
+function players(){
+ var list=S.players.slice().sort(function(a,b){return (a.pseudo||"").localeCompare(b.pseudo||"","fr")});
+ main.innerHTML='<h2 style="margin:24px 0 4px">La communauté</h2><p style="color:var(--mu);margin-top:0">Découvrez les basketteurs, filtrez les profils et trouvez des joueurs qui partagent votre passion.</p><div class="filters"><input id="q" type="search" aria-label="Rechercher" placeholder="Nom, poste, ville…"><select id="pf" aria-label="Poste"><option value="">Tous les postes</option>'+POS.map(function(p){return '<option>'+p+'</option>'}).join('')+'</select><select id="lf" aria-label="Niveau"><option value="">Tous les niveaux</option>'+LVL.map(function(x){return '<option>'+x+'</option>'}).join('')+'</select><input id="city" type="search" aria-label="Ville" placeholder="Filtrer par ville…"><label style="display:flex;align-items:center;gap:8px;background:var(--s2);padding:10px 12px;border-radius:12px;color:var(--tx);font-size:.9rem"><input id="looking" type="checkbox" style="width:auto">Recherche un club</label></div><div class="row" style="justify-content:space-between"><small id="count" style="color:var(--mu)"></small><button class="btn g" id="clear" type="button">Réinitialiser les filtres</button></div><div class="grid" id="g"></div>';
+ function d(){var q=$("#q").value.trim().toLocaleLowerCase('fr'),pf=$("#pf").value,lf=$("#lf").value,city=$("#city").value.trim().toLocaleLowerCase('fr'),looking=$("#looking").checked;
+  var r=list.filter(function(p){var hay=((p.pseudo||"")+" "+(p.poste||"")+" "+(p.ville||"")+" "+(p.bio||"")).toLocaleLowerCase('fr');return (!pf||p.poste===pf)&&(!lf||p.niveau===lf)&&(!city||(p.ville||"").toLocaleLowerCase('fr').indexOf(city)>-1)&&(!looking||p.looking_for_team===true)&&(!q||hay.indexOf(q)>-1)});
+  $("#count").textContent=r.length+' joueur'+(r.length>1?'s':'')+' trouvé'+(r.length>1?'s':'');
+  $("#g").innerHTML=r.length?r.map(function(p,i){return '<article class="card" style="animation-delay:'+(i%8)*50+'ms"><div class="av">'+avh(p)+'</div><h3>'+esc(p.pseudo||'Joueur')+'</h3><small>'+esc(p.ville||'Ville non renseignée')+'</small><div style="margin-top:8px"><span class="pill">'+esc(p.poste||'Poste non renseigné')+'</span>'+(p.taille?'<span class="pill">'+esc(p.taille)+' cm</span>':'')+'<span class="pill">'+esc(p.niveau||'Niveau non renseigné')+'</span>'+(p.looking_for_team?'<span class="pill">Recherche un club</span>':'')+'</div>'+(p.bio?'<p>'+esc(p.bio)+'</p>':'<p>Ce joueur n’a pas encore ajouté de présentation.</p>')+'</article>'}).join(''):'<div class="panel empty">Aucun joueur ne correspond à ces filtres. Essaie un autre nom, poste, niveau ou ville.</div>'}
+ ["#q","#city"].forEach(function(sel){$(sel).oninput=d});["#pf","#lf","#looking"].forEach(function(sel){$(sel).onchange=d});
+ $("#clear").onclick=function(){$("#q").value='';$("#pf").value='';$("#lf").value='';$("#city").value='';$("#looking").checked=false;d()};d()
+}
+function events(){
+ main.innerHTML='<section style="padding-top:22px"><h2 style="margin:0 0 4px">Affiches & événements</h2><p style="color:var(--mu);margin-top:0">Publiez les affiches de vos matchs, compétitions, tournois et détections pour informer toute la communauté Basket Connect.</p><div class="panel" style="margin:18px 0"><h3 style="margin-top:0">Publier une affiche</h3><form class="form" id="ef"><label class="full">Affiche (image)<input id="ep" type="file" accept="image/png,image/jpeg,image/webp" required></label><label>Titre de l’événement<input id="et" maxlength="100" required placeholder="Ex. : Finale du championnat régional"></label><label>Type<select id="ek"><option>Match</option><option>Compétition</option><option>Tournoi</option><option>Détection</option><option>Autre</option></select></label><label>Club / organisateur<input id="ec" maxlength="100" required placeholder="Nom du club ou de l’organisateur"></label><label>Ville / lieu<input id="el" maxlength="120" required placeholder="Ex. : Ouagadougou, Palais des sports"></label><label>Date et heure<input id="ed" type="datetime-local" required></label><label class="full">Informations complémentaires<textarea id="ex" rows="3" maxlength="1000" placeholder="Équipes, catégories, conditions de participation, contact public…"></textarea></label><div class="full row"><button class="btn" type="submit" id="epub">Publier l’affiche</button><small style="color:var(--mu)">JPG, PNG ou WebP · 5 Mo maximum</small></div></form></div><div class="row" style="justify-content:space-between;align-items:end"><div><h2 style="margin:0">Les prochains événements</h2><small style="color:var(--mu)">Les affiches publiées par la communauté</small></div><button type="button" class="btn g" id="eref">Actualiser</button></div><div class="grid" id="eg"><div class="panel event-empty">Chargement des affiches…</div></div></section>';
+ var f=$('#ef'),btn=$('#epub');
+ f.onsubmit=async function(e){e.preventDefault();if(!S.user)return;if(!mine()){toast('Complétez d’abord votre profil');setView('me');return}
+  var file=$('#ep').files[0];if(!file)return;
+  if(!/^image\/(jpeg|png|webp)$/.test(file.type)){toast('Choisissez une image JPG, PNG ou WebP');return}
+  if(file.size>5*1024*1024){toast('L’image doit faire 5 Mo maximum');return}
+  var title=$('#et').value.trim(),org=$('#ec').value.trim(),place=$('#el').value.trim(),dt=$('#ed').value;
+  if(!title||!org||!place||!dt){toast('Remplissez les champs obligatoires');return}
+  btn.disabled=true;btn.textContent='Publication en cours…';
+  try{
+   var ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+   var path=S.user.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,9)+'.'+ext;
+   var up=await sb.storage.from('event-posters').upload(path,file,{contentType:file.type,upsert:false});
+   if(up.error)throw new Error('Envoi de l’affiche impossible : '+up.error.message);
+   var pub=sb.storage.from('event-posters').getPublicUrl(path).data.publicUrl;
+   var ins=await sb.from('basketball_events').insert({title:title,kind:$('#ek').value,organizer:org,location:place,event_date:new Date(dt).toISOString(),description:$('#ex').value.trim(),poster_url:pub,poster_path:path,created_by:S.user.id});
+   if(ins.error){await sb.storage.from('event-posters').remove([path]);throw new Error('Enregistrement impossible : '+ins.error.message)}
+   f.reset();toast('Affiche publiée avec succès');await loadEvents();
+  }catch(err){toast(err.message||'Une erreur est survenue pendant la publication')}
+  finally{btn.disabled=false;btn.textContent='Publier l’affiche'}
+ };
+ $('#eref').onclick=loadEvents;loadEvents();
+}
+async function loadEvents(){
+ var box=$('#eg');if(!box)return;
+ var r=await sb.from('basketball_events').select('id,title,kind,organizer,location,event_date,description,poster_url,poster_path,created_by,created_at').order('event_date',{ascending:true}).limit(100);
+ box=$('#eg');if(!box)return;
+ if(r.error){box.innerHTML='<div class="panel event-empty">Impossible de charger les affiches. Vérifiez que la mise à jour SQL a été exécutée dans Supabase.</div>';return}
+ var rows=r.data||[],now=Date.now();rows.sort(function(a,b){var af=new Date(a.event_date).getTime(),bf=new Date(b.event_date).getTime();var ap=af>=now,bp=bf>=now;if(ap!==bp)return ap?-1:1;return ap?af-bf:bf-af});
+ box.innerHTML=rows.length?rows.map(function(x){var dt=new Date(x.event_date),date=dt.toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'}),mineEvent=S.user&&x.created_by===S.user.id;
+  return '<article class="card event-card"><img class="event-poster" src="'+esc(x.poster_url)+'" alt="Affiche : '+esc(x.title)+'" loading="lazy"><span class="pill">'+esc(x.kind)+'</span><h3 style="margin-top:8px">'+esc(x.title)+'</h3><div class="event-meta"><span>📅 '+esc(date)+'</span><span>📍 '+esc(x.location)+'</span></div><p><strong style="color:var(--tx)">Organisateur :</strong> '+esc(x.organizer)+'</p>'+(x.description?'<p style="white-space:pre-wrap">'+esc(x.description)+'</p>':'')+(mineEvent?'<div class="event-actions"><button class="delmsg" type="button" data-event-delete="'+x.id+'" data-event-path="'+esc(x.poster_path||'')+'">Supprimer mon affiche</button></div>':'')+'</article>'
+ }).join(''):'<div class="panel event-empty">Aucune affiche pour le moment. Publiez la première affiche de la communauté !</div>';
+ box.onclick=async function(e){var b=e.target.closest('[data-event-delete]');if(!b)return;if(!confirm('Supprimer cette affiche ?'))return;b.disabled=true;var id=b.dataset.eventDelete,path=b.dataset.eventPath;var d=await sb.from('basketball_events').delete().eq('id',id).eq('created_by',S.user.id);if(d.error){b.disabled=false;toast('Suppression impossible : '+d.error.message);return}if(path)await sb.storage.from('event-posters').remove([path]);toast('Affiche supprimée');loadEvents()}
+}
+
+function profile(){
+ var p=mine()||{};
+ main.innerHTML='<h2 style="margin:24px 0 12px">'+(p.pseudo?"Mon profil":"Inscription")+'</h2><form class="panel form" id="f">'+
+ '<div class="full row"><div class="av" id="pv" style="width:76px;height:76px;margin:0;font-size:1.6rem"></div><label style="flex:1;min-width:180px">Photo de profil<input id="ph" type="file" accept="image/*"></label>'+(p.photo?'<button type="button" class="btn g" id="rp">Retirer la photo</button>':"")+'</div>'+
+ '<label>Pseudo<input id="ps" required maxlength="30" value="'+esc(p.pseudo||"")+'"></label>'+
+ '<label>Poste<select id="po">'+POS.map(function(x){return '<option'+(p.poste===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label>'+
+ '<label>Taille (cm)<input id="ta" type="number" min="100" max="240" value="'+esc(p.taille||"")+'"></label>'+
+ '<label>Niveau<select id="ni">'+LVL.map(function(x){return '<option'+(p.niveau===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label>'+
+ '<label class="full">Ville<input id="vi" maxlength="60" value="'+esc(p.ville||"")+'"></label>'+
+ '<label class="full">Présentation<textarea id="bi" rows="3" maxlength="240">'+esc(p.bio||"")+'</textarea></label>'+
+ '<label class="full" style="display:flex;align-items:center;gap:10px"><input id="vs" type="checkbox" style="width:auto"'+(p.visible===false?"":" checked")+'>Afficher mon profil aux autres joueurs</label>'+
+ '<label class="full" style="display:flex;align-items:center;gap:10px"><input id="lt" type="checkbox" style="width:auto"'+(p.looking_for_team?" checked":"")+'>Je recherche un club ou une équipe</label>'+ 
+ '<div class="full row"><button class="btn" type="submit">Enregistrer</button>'+(p.pseudo?'<button type="button" class="btn g" id="dl">Supprimer mon profil</button>':"")+'</div></form>'+
+ '<p class="note">Ne publiez ni téléphone, ni adresse. Les joueurs mineurs doivent s’inscrire avec l’accord d’un responsable.</p>';
+ var photo=p.photo||null;function pv(){$("#pv").innerHTML=avh({pseudo:$("#ps").value,photo:photo})}pv();$("#ps").oninput=pv;
+ $("#ph").onchange=function(e){var f=e.target.files[0];if(!f)return;shrink(f).then(function(d){photo=d;pv()}).catch(function(){toast("Image illisible")})};
+ var rp=$("#rp");if(rp)rp.onclick=function(){photo=null;pv();rp.remove()};
+ $("#f").onsubmit=async function(e){e.preventDefault();var b=e.submitter;b.disabled=true;
+  var r=await sb.from("profiles").upsert({id:S.user.id,pseudo:$("#ps").value.trim().slice(0,30),poste:$("#po").value,taille:+$("#ta").value||null,niveau:$("#ni").value,ville:$("#vi").value.trim().slice(0,60),bio:$("#bi").value.trim().slice(0,240),visible:$("#vs").checked,looking_for_team:$("#lt").checked,photo:photo});
+  if(r.error){toast("Enregistrement impossible");b.disabled=false;return}
+  await loadPlayers();toast("Profil enregistré");setView("players")};
+ var dl=$("#dl");if(dl)dl.onclick=async function(){if(!confirm("Supprimer votre profil et vos messages ?"))return;var r=await sb.from("profiles").delete().eq("id",S.user.id);if(r.error){toast("Suppression impossible");return}await loadPlayers();await loadMsgs();setView("me")}
+}
+function chat(){
+ main.innerHTML='<div class="panel chat"><div class="msgs" id="ms" role="log" aria-live="polite"></div><form class="send" id="sf"><input id="tx" maxlength="500" placeholder="Votre message…" aria-label="Message" autocomplete="off"><button class="btn" type="submit">Envoyer</button></form></div><p class="note">Discussion commune à tous les joueurs inscrits. Restez respectueux.</p>';
+ var last=0;S.sig=null;S.drawn=null;
+ $("#sf").onsubmit=async function(e){e.preventDefault();var t=$("#tx").value.trim();if(!t||Date.now()-last<800)return;
+  if(!mine()){toast("Créez d’abord votre profil");setView("me");return}
+  last=Date.now();$("#tx").value="";var r=await sb.from("messages").insert({text:t.slice(0,500)});if(r.error){toast("Message non envoyé : "+r.error.message);$("#tx").value=t}else pollNew()};
+ $("#ms").onclick=function(e){var b=e.target.closest(".rb");if(b){react(+b.dataset.id,b.dataset.k);return}var d=e.target.closest("[data-delete]");if(d)deleteMessage(+d.dataset.delete,d)};
+ drawMsgs();loadReacts()
+}
+function rxHTML(m){var r=S.reacts[m.id]||{},cnt={},mk=S.user&&r[S.user.id];Object.keys(r).forEach(function(u){cnt[r[u]]=(cnt[r[u]]||0)+1});
+ return '<div class="rx">'+RX.map(function(x){var c=cnt[x[0]]||0;return '<button type="button" class="rb'+(mk===x[0]?" on":"")+(c?" has":"")+'" data-id="'+m.id+'" data-k="'+x[0]+'" aria-pressed="'+(mk===x[0])+'" aria-label="'+x[2]+(c?" ("+c+")":"")+'">'+x[1]+(c?" "+c:"")+'</button>'}).join("")+'</div>'}
+function drawMsgs(){var box=$("#ms");if(!box)return;
+ var lastId=S.msgs.length?S.msgs[S.msgs.length-1].id:0,sig=S.msgs.length+":"+lastId+":"+JSON.stringify(S.reacts);
+ if(sig===S.sig&&box.dataset.s)return;S.sig=sig;
+ var low=box.scrollHeight-box.scrollTop-box.clientHeight<80,seen=S.drawn==null?lastId:S.drawn;
+ box.innerHTML=S.msgs.length?S.msgs.map(function(m){var me=S.user&&m.user_id===S.user.id,n=(m.profiles&&m.profiles.pseudo)||"Joueur";
+  return '<div class="mw'+(me?" me":"")+(m.id>seen?" new":"")+'"><div class="m'+(me?" me":"")+'">'+(me?"":'<b>'+esc(n)+'</b>')+esc(m.text)+' <span>'+new Date(m.created_at).toLocaleTimeString("fr",{hour:"2-digit",minute:"2-digit"})+'</span></div>'+rxHTML(m)+(me?'<div class="m-actions"><button class="delmsg" type="button" data-delete="'+m.id+'" aria-label="Supprimer mon message">Supprimer</button></div>':'')+'</div>'}).join(""):'<p style="color:var(--mu)">Aucun message. Lancez la discussion !</p>';
+ S.drawn=lastId;
+ if(low||!box.dataset.s){box.scrollTop=box.scrollHeight;box.dataset.s=1}}
+async function deleteMessage(id,button){
+ var m=S.msgs.filter(function(x){return x.id===id})[0];if(!m||!S.user||m.user_id!==S.user.id)return;
+ if(!confirm("Supprimer définitivement ce message ?"))return;
+ button.disabled=true;var r=await sb.from("messages").delete().eq("id",id).eq("user_id",S.user.id);
+ if(r.error){button.disabled=false;toast("Suppression impossible. Vérifiez les règles de sécurité.");return}
+ S.msgs=S.msgs.filter(function(x){return x.id!==id});delete S.reacts[id];S.sig=null;drawMsgs();toast("Message supprimé")
+}
+async function react(id,k){
+ if(!mine()){toast("Créez d’abord votre profil");return}
+ var o=S.reacts[id]=S.reacts[id]||{},cur=o[S.user.id],r;
+ if(cur===k){delete o[S.user.id];drawMsgs();r=await sb.from("message_reactions").delete().eq("message_id",id).eq("user_id",S.user.id)}
+ else{o[S.user.id]=k;drawMsgs();r=await sb.from("message_reactions").upsert({message_id:id,user_id:S.user.id,kind:k})}
+ if(r.error){toast("Réaction impossible");loadReacts()}}
+async function loadReacts(){
+ if(!S.user||!S.msgs.length)return;
+ var r=await sb.from("message_reactions").select("message_id,user_id,kind").gte("message_id",S.msgs[0].id);
+ if(r.error)return;var o={};(r.data||[]).forEach(function(x){(o[x.message_id]=o[x.message_id]||{})[x.user_id]=x.kind});S.reacts=o;drawMsgs()}
+function notify(m){
+ if(S.view==="chat"&&!document.hidden)return;
+ var n=(m.profiles&&m.profiles.pseudo)||"Un joueur",txt=n+" a envoyé un message";
+ S.unread++;nav();
+ if(!document.hidden)toast(txt+" : "+m.text.slice(0,60));
+ else if("Notification" in window&&Notification.permission==="granted"){try{var x=new Notification(txt,{body:m.text.slice(0,100),tag:"msg"});x.onclick=function(){window.focus();setView("chat");x.close()}}catch(e){}}
+}
+
+async function loadPlayers(){var r=await sb.from("profiles").select("*");S.players=r.data||[];if(S.view==="players"||S.view==="home")draw()}
+async function loadMsgs(){var r=await sb.from("messages").select("id,user_id,text,created_at,profiles!messages_user_id_fkey(pseudo)").order("id",{ascending:false}).limit(100);if(r.error){toast("Chargement des messages impossible : "+r.error.message);return}S.msgs=(r.data||[]).reverse();S.maxId=S.msgs.length?S.msgs[S.msgs.length-1].id:0;S.boot=true;drawMsgs();loadReacts()}
+async function pollNew(){
+ if(!S.user||!S.boot||S.busy)return;S.busy=true;
+ try{var r=await sb.from("messages").select("id,user_id,text,created_at,profiles!messages_user_id_fkey(pseudo)").gt("id",S.maxId).order("id",{ascending:true}).limit(50);
+  if(r.error||!r.data||!r.data.length)return;
+  r.data.forEach(function(m){S.msgs.push(m);S.maxId=Math.max(S.maxId,m.id);if(m.user_id!==S.user.id)notify(m)});
+  if(S.msgs.length>200)S.msgs=S.msgs.slice(-200);
+  drawMsgs();loadReacts()}
+ finally{S.busy=false}}
+function subscribe(){
+ sb.removeAllChannels();
+ S.ch=sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},pollNew).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},loadReacts).on("postgres_changes",{event:"*",schema:"public",table:"profiles"},loadPlayers).on("postgres_changes",{event:"*",schema:"public",table:"basketball_events"},function(){if(S.view==="events")loadEvents()}).subscribe()
+}
+async function onUser(u){
+ S.user=u;
+ if(u){await loadPlayers();await loadMsgs();subscribe();
+  if(!S.poll){S.poll=setInterval(function(){pollNew();if(S.user&&S.view==="chat"&&!document.hidden)loadReacts()},5000);
+   document.addEventListener("visibilitychange",function(){if(S.user&&!document.hidden){if(S.view==="chat"){S.unread=0;nav()}pollNew();loadPlayers()}})}
+  if(S.view==="auth")S.view=mine()?"players":"me"}
+ else{sb.removeAllChannels();S.players=[];S.msgs=[];S.reacts={};S.unread=0;S.maxId=0;S.boot=false;S.view="home"}
+ draw()
+}
+draw();
+if(configured){
+ sb.auth.onAuthStateChange(function(_e,s){var u=s?s.user:null;
+  if((u&&S.user&&u.id===S.user.id)||(!u&&!S.user&&S.ready)){S.user=u;return}
+  S.ready=true;setTimeout(function(){onUser(u)},0)});
+}
+})();
+</script>
+</body>
+</html>
