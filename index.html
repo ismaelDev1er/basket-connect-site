@@ -91,6 +91,31 @@ input:focus,select:focus,textarea:focus{border-color:var(--or);box-shadow:0 0 0 
 .hero{padding-top:clamp(34px,7vw,72px)}
 .logo{letter-spacing:-.035em}
 @media(max-width:600px){.top{align-items:flex-start}.top nav{width:100%;display:flex;flex-wrap:wrap}.top nav button{flex:1 1 auto;padding:8px 10px}}
+.bg::before{content:"";position:absolute;inset:-3%;background:url(bg.webp) center/cover no-repeat;animation:bgz 36s ease-in-out infinite alternate;will-change:transform}
+.bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(21,23,28,.6),rgba(21,23,28,.2) 70%),linear-gradient(180deg,rgba(21,23,28,.35),rgba(21,23,28,.72))}
+.bg i{opacity:.1}
+@keyframes bgz{to{transform:scale(1.06) translate3d(0,-1%,0)}}
+@media (max-width:700px){.bg::before{inset:0;background-image:url(bg-mobile.webp);background-position:left center}}
+.btn.sm{padding:8px 14px;font-size:.9rem}
+.dmwrap{display:grid;grid-template-columns:300px 1fr;gap:14px;margin-top:16px;height:max(460px,calc(100vh - 200px));height:max(460px,calc(100dvh - 200px))}
+.dmlist{overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px;align-content:flex-start}
+.dmi{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:none;color:var(--tx);font:inherit;padding:10px;border-radius:14px;cursor:pointer;transition:background .2s}
+.dmi:hover,.dmi.on{background:var(--s2)}
+.dmi .av,.dmhead .av{width:40px;height:40px;margin:0;font-size:.95rem}
+.dmt{flex:1;min-width:0}.dmt b{display:block}.dmt small{display:block;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dmthread{display:flex;flex-direction:column;min-height:0;padding:14px}
+.dmhead{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--bd);margin-bottom:10px}.dmhead b{flex:1}
+.dmback{display:none}
+@media (max-width:760px){.dmwrap{grid-template-columns:1fr}.dmwrap.open .dmlist{display:none}.dmwrap:not(.open) .dmthread{display:none}.dmback{display:inline-flex}}
+.event-open{display:block;width:100%;padding:0;border:0;background:#0e1014;border-radius:12px;cursor:zoom-in;margin-bottom:12px;text-align:center;overflow:hidden}
+.event-open .event-poster{width:auto;max-width:100%;height:auto;max-height:440px;aspect-ratio:auto;object-fit:contain;margin:0 auto;border-radius:0;background:none;display:block}
+.event-tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.event-tools .btn{text-decoration:none;display:inline-flex;align-items:center}
+.lb{position:fixed;inset:0;z-index:100;background:rgba(8,9,12,.92);display:flex;flex-direction:column;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));animation:up .25s both}
+.lb-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;color:#eef0f5}
+.lb-act{display:flex;gap:8px;flex-wrap:wrap}.lb-act a{text-decoration:none;display:inline-flex;align-items:center}
+.lb-img{flex:1;min-height:0;display:grid;place-items:center}
+.lb-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 </style>
 </head>
 <body>
@@ -106,14 +131,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--or);box-shadow:0 0 0 
 (function(){
 "use strict";
 /* ====== À REMPLIR (Supabase > Project Settings > API) ====== */
-var SUPABASE_URL="https://jaeyzrwaehxlgqzwgbxw.supabase.co";
-var SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphZXl6cndhZWh4bGdxendnYnh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MzgwMzAsImV4cCI6MjEwNzQxNDAzMH0.qOXgX7FH5nEF1U-a2-P9bPbYabnnTMhH7OjdZpxlUWI";
+var SUPABASE_URL="https://hrsvecduiiyfokbyxolu.supabase.co";
+var SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyc3ZlY2R1aWl5Zm9rYnl4b2x1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4Mzc3NjksImV4cCI6MjEwNzQxMzc2OX0.3LWMAIfP2p4C1S0oIbL9Rczoe7unDNGv-R3Ob2C-yW4";
 /* La clé "anon" est publique par conception : la sécurité vient des règles RLS de setup.sql. */
 
 var $=function(s,e){return (e||document).querySelector(s)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
 var POS=["Meneur","Arrière","Ailier","Ailier fort","Pivot"],LVL=["Loisir","Club","Régional","National"];
-var S={view:"home",user:null,players:[],msgs:[],mode:"in",ch:null,reacts:{},unread:0,maxId:0,boot:false,drawn:null,sig:null};
+var S={convs:[],dms:[],dmMax:0,dmUnread:0,openConv:null,blockedIds:[],view:"home",user:null,players:[],msgs:[],mode:"in",ch:null,reacts:{},unread:0,maxId:0,boot:false,drawn:null,sig:null};
 var RX=[["like","👍","J’aime"],["heart","❤️","Cœur"],["smile","😊","Sourire"]];
 var main=$("#v"),sb=null;
 var configured=SUPABASE_URL.indexOf("REMPLACEZ")<0&&window.supabase;
@@ -126,11 +151,11 @@ function shrink(file){return new Promise(function(ok,ko){var r=new FileReader();
 function mine(){return S.players.filter(function(p){return S.user&&p.id===S.user.id})[0]}
 
 function nav(){
- var t=[["home","Accueil"]].concat(S.user?[["players","Joueurs"],["events","Affiches"],["chat","Messages"],["me","Mon profil"]]:[["auth","Connexion"]]);
- $("#nv").innerHTML=t.map(function(x){var g=x[0]==="chat"&&S.unread?'<span class="bdg">'+(S.unread>9?"9+":S.unread)+'</span>':"";return '<button role="tab" data-v="'+x[0]+'" aria-selected="'+(S.view===x[0])+'">'+x[1]+g+'</button>'}).join("")
+ var t=[["home","Accueil"]].concat(S.user?[["players","Joueurs"],["events","Affiches"],["chat","Messages"],["dm","Privé"],["me","Mon profil"]]:[["auth","Connexion"]]);
+ $("#nv").innerHTML=t.map(function(x){var c=x[0]==="chat"?S.unread:x[0]==="dm"?S.dmUnread:0,g=c?'<span class="bdg">'+(c>9?"9+":c)+'</span>':"";return '<button role="tab" data-v="'+x[0]+'" aria-selected="'+(S.view===x[0])+'">'+x[1]+g+'</button>'}).join("")
  +(S.user&&"Notification" in window&&Notification.permission==="default"?'<button data-v="bell" title="Activer les notifications" aria-label="Activer les notifications">🔔</button>':"")
  +(S.user?'<button data-v="out">Déconnexion</button>':"");
- document.title=(S.unread?"("+S.unread+") ":"")+"Basket Connect"
+ var tot=(S.unread||0)+(S.dmUnread||0);document.title=(tot?"("+tot+") ":"")+"Basket Connect"
 }
 $("#nv").onclick=function(e){var b=e.target.closest("button");if(!b)return;
  if(b.dataset.v==="out"){sb.auth.signOut();return}
@@ -142,7 +167,7 @@ function draw(){
  if(!configured){var why=SUPABASE_URL.indexOf("REMPLACEZ")>-1?"Ce fichier n’est pas la version configurée : l’adresse du projet est absente. Retéléchargez le dernier index.html.":"La bibliothèque Supabase n’a pas pu se charger. Vérifiez votre connexion Internet et désactivez temporairement tout bloqueur (antivirus, bloqueur de publicités, réseau d’entreprise ou d’école).";main.innerHTML='<div class="panel" style="margin-top:24px"><b>Le site ne peut pas démarrer.</b><p style="color:var(--mu)">'+why+'</p></div>';return}
  var v=S.view;
  if(v!=="home"&&!S.user)v="auth";
- if(v==="home")home();else if(v==="auth")auth();else if(v==="players")players();else if(v==="events")events();else if(v==="chat")chat();else profile()
+ if(v==="home")home();else if(v==="auth")auth();else if(v==="players")players();else if(v==="events")events();else if(v==="chat")chat();else if(v==="dm")dm();else profile()
 }
 function home(){
  main.innerHTML='<section class="hero"><h1>Une seule plateforme pour <span>tous les basketteurs.</span></h1><p>Créez votre profil, découvrez des basketteurs par poste, niveau ou ville, puis échangez dans une communauté dédiée au basketball.</p><button class="btn" id="go">'+(S.user?(mine()?"Voir les joueurs":"Compléter mon profil"):"Je m’inscris")+'</button></section>';
@@ -166,9 +191,9 @@ function players(){
  function d(){var q=$("#q").value.trim().toLocaleLowerCase('fr'),pf=$("#pf").value,lf=$("#lf").value,city=$("#city").value.trim().toLocaleLowerCase('fr'),looking=$("#looking").checked;
   var r=list.filter(function(p){var hay=((p.pseudo||"")+" "+(p.poste||"")+" "+(p.ville||"")+" "+(p.bio||"")).toLocaleLowerCase('fr');return (!pf||p.poste===pf)&&(!lf||p.niveau===lf)&&(!city||(p.ville||"").toLocaleLowerCase('fr').indexOf(city)>-1)&&(!looking||p.looking_for_team===true)&&(!q||hay.indexOf(q)>-1)});
   $("#count").textContent=r.length+' joueur'+(r.length>1?'s':'')+' trouvé'+(r.length>1?'s':'');
-  $("#g").innerHTML=r.length?r.map(function(p,i){return '<article class="card" style="animation-delay:'+(i%8)*50+'ms"><div class="av">'+avh(p)+'</div><h3>'+esc(p.pseudo||'Joueur')+'</h3><small>'+esc(p.ville||'Ville non renseignée')+'</small><div style="margin-top:8px"><span class="pill">'+esc(p.poste||'Poste non renseigné')+'</span>'+(p.taille?'<span class="pill">'+esc(p.taille)+' cm</span>':'')+'<span class="pill">'+esc(p.niveau||'Niveau non renseigné')+'</span>'+(p.looking_for_team?'<span class="pill">Recherche un club</span>':'')+'</div>'+(p.bio?'<p>'+esc(p.bio)+'</p>':'<p>Ce joueur n’a pas encore ajouté de présentation.</p>')+'</article>'}).join(''):'<div class="panel empty">Aucun joueur ne correspond à ces filtres. Essaie un autre nom, poste, niveau ou ville.</div>'}
+  $("#g").innerHTML=r.length?r.map(function(p,i){return '<article class="card" style="animation-delay:'+(i%8)*50+'ms"><div class="av">'+avh(p)+'</div><h3>'+esc(p.pseudo||'Joueur')+'</h3><small>'+esc(p.ville||'Ville non renseignée')+'</small><div style="margin-top:8px"><span class="pill">'+esc(p.poste||'Poste non renseigné')+'</span>'+(p.taille?'<span class="pill">'+esc(p.taille)+' cm</span>':'')+'<span class="pill">'+esc(p.niveau||'Niveau non renseigné')+'</span>'+(p.looking_for_team?'<span class="pill">Recherche un club</span>':'')+'</div>'+(p.bio?'<p>'+esc(p.bio)+'</p>':'<p>Ce joueur n’a pas encore ajouté de présentation.</p>')+(S.user&&p.id!==S.user.id?'<button class="btn sm" type="button" data-dm="'+esc(p.id)+'" style="margin-top:12px">Écrire en privé</button>':'')+'</article>'}).join(''):'<div class="panel empty">Aucun joueur ne correspond à ces filtres. Essaie un autre nom, poste, niveau ou ville.</div>'}
  ["#q","#city"].forEach(function(sel){$(sel).oninput=d});["#pf","#lf","#looking"].forEach(function(sel){$(sel).onchange=d});
- $("#clear").onclick=function(){$("#q").value='';$("#pf").value='';$("#lf").value='';$("#city").value='';$("#looking").checked=false;d()};d()
+ $("#clear").onclick=function(){$("#q").value='';$("#pf").value='';$("#lf").value='';$("#city").value='';$("#looking").checked=false;d()};$("#g").onclick=function(e){var b=e.target.closest("[data-dm]");if(b)startDM(b.dataset.dm)};d()
 }
 function events(){
  main.innerHTML='<section style="padding-top:22px"><h2 style="margin:0 0 4px">Affiches & événements</h2><p style="color:var(--mu);margin-top:0">Publiez les affiches de vos matchs, compétitions, tournois et détections pour informer toute la communauté Basket Connect.</p><div class="panel" style="margin:18px 0"><h3 style="margin-top:0">Publier une affiche</h3><form class="form" id="ef"><label class="full">Affiche (image)<input id="ep" type="file" accept="image/png,image/jpeg,image/webp" required></label><label>Titre de l’événement<input id="et" maxlength="100" required placeholder="Ex. : Finale du championnat régional"></label><label>Type<select id="ek"><option>Match</option><option>Compétition</option><option>Tournoi</option><option>Détection</option><option>Autre</option></select></label><label>Club / organisateur<input id="ec" maxlength="100" required placeholder="Nom du club ou de l’organisateur"></label><label>Ville / lieu<input id="el" maxlength="120" required placeholder="Ex. : Ouagadougou, Palais des sports"></label><label>Date et heure<input id="ed" type="datetime-local" required></label><label class="full">Informations complémentaires<textarea id="ex" rows="3" maxlength="1000" placeholder="Équipes, catégories, conditions de participation, contact public…"></textarea></label><div class="full row"><button class="btn" type="submit" id="epub">Publier l’affiche</button><small style="color:var(--mu)">JPG, PNG ou WebP · 5 Mo maximum</small></div></form></div><div class="row" style="justify-content:space-between;align-items:end"><div><h2 style="margin:0">Les prochains événements</h2><small style="color:var(--mu)">Les affiches publiées par la communauté</small></div><button type="button" class="btn g" id="eref">Actualiser</button></div><div class="grid" id="eg"><div class="panel event-empty">Chargement des affiches…</div></div></section>';
@@ -194,16 +219,33 @@ function events(){
  };
  $('#eref').onclick=loadEvents;loadEvents();
 }
+function posterDl(x){
+ var ext=((x.poster_path||'').match(/\.[a-z0-9]+$/i)||['.jpg'])[0],
+  name=(x.title||'affiche').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase()||'affiche';
+ return x.poster_path?sb.storage.from('event-posters').getPublicUrl(x.poster_path,{download:'affiche-'+name+ext}).data.publicUrl:x.poster_url}
+function openPoster(id){
+ var list=S.evRows||[],i=list.findIndex(function(x){return String(x.id)===String(id)});if(i<0)return;
+ var prev=document.activeElement,o=document.createElement('div');
+ o.className='lb';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Affiche en grand');
+ function show(){var x=list[i];
+  o.innerHTML='<div class="lb-bar"><strong>'+esc(x.title)+'</strong><span class="lb-act">'+(list.length>1?'<button type="button" class="btn g sm" data-lb="prev" aria-label="Affiche précédente">←</button><button type="button" class="btn g sm" data-lb="next" aria-label="Affiche suivante">→</button>':'')+'<a class="btn sm" href="'+esc(posterDl(x))+'" download rel="noopener">Télécharger l’image</a><button type="button" class="btn g sm" data-lb="close">Fermer</button></span></div><div class="lb-img"><img src="'+esc(x.poster_url)+'" alt="Affiche : '+esc(x.title)+'"></div>'}
+ function close(){document.removeEventListener('keydown',k);o.remove();document.body.style.overflow='';if(prev&&prev.focus)prev.focus()}
+ function k(e){if(e.key==='Escape')close();else if(list.length>1&&e.key==='ArrowRight'){i=(i+1)%list.length;show()}else if(list.length>1&&e.key==='ArrowLeft'){i=(i+list.length-1)%list.length;show()}}
+ o.onclick=function(e){var b=e.target.closest('[data-lb]');
+  if(b){var a=b.dataset.lb;if(a==='close')close();else{i=(i+(a==='next'?1:list.length-1))%list.length;show()}return}
+  if(e.target===o||e.target.classList.contains('lb-img'))close()};
+ show();document.body.appendChild(o);document.body.style.overflow='hidden';document.addEventListener('keydown',k);
+ var c=o.querySelector('[data-lb="close"]');if(c)c.focus()}
 async function loadEvents(){
  var box=$('#eg');if(!box)return;
  var r=await sb.from('basketball_events').select('id,title,kind,organizer,location,event_date,description,poster_url,poster_path,created_by,created_at').order('event_date',{ascending:true}).limit(100);
  box=$('#eg');if(!box)return;
  if(r.error){box.innerHTML='<div class="panel event-empty">Impossible de charger les affiches. Vérifiez que la mise à jour SQL a été exécutée dans Supabase.</div>';return}
  var rows=r.data||[],now=Date.now();rows.sort(function(a,b){var af=new Date(a.event_date).getTime(),bf=new Date(b.event_date).getTime();var ap=af>=now,bp=bf>=now;if(ap!==bp)return ap?-1:1;return ap?af-bf:bf-af});
- box.innerHTML=rows.length?rows.map(function(x){var dt=new Date(x.event_date),date=dt.toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'}),mineEvent=S.user&&x.created_by===S.user.id;
-  return '<article class="card event-card"><img class="event-poster" src="'+esc(x.poster_url)+'" alt="Affiche : '+esc(x.title)+'" loading="lazy"><span class="pill">'+esc(x.kind)+'</span><h3 style="margin-top:8px">'+esc(x.title)+'</h3><div class="event-meta"><span>📅 '+esc(date)+'</span><span>📍 '+esc(x.location)+'</span></div><p><strong style="color:var(--tx)">Organisateur :</strong> '+esc(x.organizer)+'</p>'+(x.description?'<p style="white-space:pre-wrap">'+esc(x.description)+'</p>':'')+(mineEvent?'<div class="event-actions"><button class="delmsg" type="button" data-event-delete="'+x.id+'" data-event-path="'+esc(x.poster_path||'')+'">Supprimer mon affiche</button></div>':'')+'</article>'
+ S.evRows=rows;box.innerHTML=rows.length?rows.map(function(x){var dt=new Date(x.event_date),date=dt.toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'}),mineEvent=S.user&&x.created_by===S.user.id;
+  return '<article class="card event-card"><button type="button" class="event-open" data-event-view="'+x.id+'" aria-label="Voir l’affiche en grand : '+esc(x.title)+'"><img class="event-poster" src="'+esc(x.poster_url)+'" alt="Affiche : '+esc(x.title)+'" loading="lazy"></button><div class="event-tools"><button class="btn sm g" type="button" data-event-view="'+x.id+'">Voir en grand</button><a class="btn sm" href="'+esc(posterDl(x))+'" download rel="noopener">Télécharger</a></div><span class="pill">'+esc(x.kind)+'</span><h3 style="margin-top:8px">'+esc(x.title)+'</h3><div class="event-meta"><span>📅 '+esc(date)+'</span><span>📍 '+esc(x.location)+'</span></div><p><strong style="color:var(--tx)">Organisateur :</strong> '+esc(x.organizer)+'</p>'+(x.description?'<p style="white-space:pre-wrap">'+esc(x.description)+'</p>':'')+(mineEvent?'<div class="event-actions"><button class="delmsg" type="button" data-event-delete="'+x.id+'" data-event-path="'+esc(x.poster_path||'')+'">Supprimer mon affiche</button></div>':'')+'</article>'
  }).join(''):'<div class="panel event-empty">Aucune affiche pour le moment. Publiez la première affiche de la communauté !</div>';
- box.onclick=async function(e){var b=e.target.closest('[data-event-delete]');if(!b)return;if(!confirm('Supprimer cette affiche ?'))return;b.disabled=true;var id=b.dataset.eventDelete,path=b.dataset.eventPath;var d=await sb.from('basketball_events').delete().eq('id',id).eq('created_by',S.user.id);if(d.error){b.disabled=false;toast('Suppression impossible : '+d.error.message);return}if(path)await sb.storage.from('event-posters').remove([path]);toast('Affiche supprimée');loadEvents()}
+ box.onclick=async function(e){var v=e.target.closest('[data-event-view]');if(v){openPoster(v.dataset.eventView);return}var b=e.target.closest('[data-event-delete]');if(!b)return;if(!confirm('Supprimer cette affiche ?'))return;b.disabled=true;var id=b.dataset.eventDelete,path=b.dataset.eventPath;var d=await sb.from('basketball_events').delete().eq('id',id).eq('created_by',S.user.id);if(d.error){b.disabled=false;toast('Suppression impossible : '+d.error.message);return}if(path)await sb.storage.from('event-posters').remove([path]);toast('Affiche supprimée');loadEvents()}
 }
 
 function profile(){
@@ -283,17 +325,85 @@ async function pollNew(){
   if(S.msgs.length>200)S.msgs=S.msgs.slice(-200);
   drawMsgs();loadReacts()}
  finally{S.busy=false}}
+var DMC="id,conversation_id,sender_id,text,created_at,read_at";
+function recount(){S.dmUnread=S.user?S.dms.filter(function(m){return m.sender_id!==S.user.id&&!m.read_at}).length:0}
+function dmOther(c){return c.user_a===S.user.id?c.user_b:c.user_a}
+function dmProf(id){return S.players.filter(function(p){return p.id===id})[0]||{}}
+async function loadConvs(){var c=await sb.from("conversations").select("id,user_a,user_b,last_message_at");if(!c.error)S.convs=c.data||[]}
+async function loadDMs(){
+ await loadConvs();
+ var r=await sb.from("direct_messages").select(DMC).order("id",{ascending:false}).limit(300);
+ if(!r.error){S.dms=(r.data||[]).reverse();S.dmMax=S.dms.length?S.dms[S.dms.length-1].id:0}
+ var b=await sb.from("blocks").select("blocked");if(!b.error)S.blockedIds=(b.data||[]).map(function(x){return x.blocked});
+ recount();nav()}
+async function markRead(id){
+ var r=await sb.rpc("mark_read",{p_conversation:id});if(r.error)return;
+ S.dms.forEach(function(m){if(m.conversation_id===id&&m.sender_id!==S.user.id&&!m.read_at)m.read_at=new Date().toISOString()});recount();nav()}
+async function openThread(id){
+ S.openConv=id;
+ var r=await sb.from("direct_messages").select(DMC).eq("conversation_id",id).order("id",{ascending:false}).limit(100);
+ if(!r.error){S.dms=S.dms.filter(function(m){return m.conversation_id!==id}).concat((r.data||[]).reverse()).sort(function(a,b){return a.id-b.id});S.dmMax=S.dms.reduce(function(a,m){return Math.max(a,m.id)},S.dmMax)}
+ await markRead(id);drawDM()}
+async function startDM(other){
+ var r=await sb.rpc("open_conversation",{p_other:other});
+ if(r.error){toast(r.error.message||"Conversation impossible");return}
+ await loadConvs();setView("dm");openThread(r.data)}
+function notifyDM(m){
+ if(S.view==="dm"&&S.openConv===m.conversation_id&&!document.hidden)return;
+ var n=dmProf(m.sender_id).pseudo||"Un joueur",txt=n+" vous a écrit en privé";
+ if(!document.hidden)toast(txt);
+ else if("Notification" in window&&Notification.permission==="granted"){try{var x=new Notification(txt,{body:m.text.slice(0,100),tag:"dm"});x.onclick=function(){window.focus();setView("dm");x.close()}}catch(e){}}}
+async function pollDM(){
+ if(!S.user||S.dmBusy)return;S.dmBusy=true;
+ try{var r=await sb.from("direct_messages").select(DMC).gt("id",S.dmMax).order("id",{ascending:true}).limit(50);
+  if(r.error||!r.data||!r.data.length)return;
+  var fresh=false;
+  r.data.forEach(function(m){S.dms.push(m);S.dmMax=Math.max(S.dmMax,m.id);
+   var c=S.convs.filter(function(x){return x.id===m.conversation_id})[0];if(c)c.last_message_at=m.created_at;else fresh=true;
+   if(m.sender_id!==S.user.id)notifyDM(m)});
+  if(fresh)await loadConvs();
+  if(S.view==="dm"&&S.openConv&&!document.hidden&&r.data.some(function(m){return m.conversation_id===S.openConv&&m.sender_id!==S.user.id}))await markRead(S.openConv);
+  recount();nav();if(S.view==="dm")drawDM()}
+ finally{S.dmBusy=false}}
+function dm(){drawDM();if(S.openConv)markRead(S.openConv).then(drawDM)}
+function drawDM(){
+ if(S.view!=="dm"||!S.user)return;
+ var me=S.user.id,tx=$("#dtx"),keep=tx?tx.value:"",focus=tx&&document.activeElement===tx;
+ var list=S.convs.slice().sort(function(a,b){return new Date(b.last_message_at)-new Date(a.last_message_at)});
+ function thread(id){return S.dms.filter(function(m){return m.conversation_id===id})}
+ var items=list.map(function(c){var p=dmProf(dmOther(c)),t=thread(c.id),l=t[t.length-1],u=t.filter(function(m){return m.sender_id!==me&&!m.read_at}).length;
+  return '<button class="dmi'+(c.id===S.openConv?' on':'')+'" type="button" data-c="'+c.id+'"><span class="av">'+avh(p)+'</span><span class="dmt"><b>'+esc(p.pseudo||'Joueur')+'</b><small>'+(l?(l.sender_id===me?'Vous : ':'')+esc(l.text):'Nouvelle conversation')+'</small></span>'+(u?'<span class="bdg">'+u+'</span>':'')+'</button>'}).join('');
+ var cur=S.convs.filter(function(c){return c.id===S.openConv})[0],th;
+ if(!cur)th='<p style="color:var(--mu);margin:auto;text-align:center;padding:20px">Choisissez une conversation, ou cliquez sur « Écrire en privé » depuis la page Joueurs.</p>';
+ else{var o=dmOther(cur),p=dmProf(o),bl=S.blockedIds.indexOf(o)>-1;
+  th='<div class="dmhead"><button class="btn g sm dmback" type="button" id="dback" aria-label="Retour aux conversations">←</button><span class="av">'+avh(p)+'</span><b>'+esc(p.pseudo||'Joueur')+'</b><button class="btn g sm" type="button" id="dblock">'+(bl?'Débloquer':'Bloquer')+'</button></div>'+
+  '<div class="msgs" id="dmsg" role="log" aria-live="polite">'+thread(cur.id).map(function(m){var mi=m.sender_id===me;return '<div class="mw'+(mi?' me':'')+'"><div class="m'+(mi?' me':'')+'">'+esc(m.text)+' <span>'+new Date(m.created_at).toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'})+(mi?(m.read_at?' ✓✓':' ✓'):'')+'</span></div></div>'}).join('')+'</div>'+
+  (bl?'<p class="note">Vous avez bloqué ce joueur. Débloquez-le pour reprendre la conversation.</p>':'<form class="send" id="dsf"><input id="dtx" maxlength="1000" placeholder="Votre message privé…" aria-label="Message privé" autocomplete="off"><button class="btn" type="submit">Envoyer</button></form>')}
+ main.innerHTML='<div class="dmwrap'+(S.openConv?' open':'')+'"><aside class="panel dmlist" aria-label="Conversations">'+(items||'<p style="color:var(--mu);padding:10px">Aucune conversation pour le moment. Ouvrez « Joueurs » et cliquez sur « Écrire en privé ».</p>')+'</aside><section class="panel dmthread">'+th+'</section></div>';
+ var box=$("#dmsg");if(box)box.scrollTop=box.scrollHeight;
+ var nt=$("#dtx");if(nt){nt.value=keep;if(focus)nt.focus()}
+ [].forEach.call(main.querySelectorAll("[data-c]"),function(b){b.onclick=function(){openThread(+b.dataset.c)}});
+ var bk=$("#dback");if(bk)bk.onclick=function(){S.openConv=null;drawDM()};
+ var bb=$("#dblock");if(bb)bb.onclick=async function(){var o=dmOther(cur),bl=S.blockedIds.indexOf(o)>-1;
+  if(!bl&&!confirm("Bloquer ce joueur ? Vous ne pourrez plus vous écrire."))return;
+  var r=bl?await sb.from("blocks").delete().eq("blocker",me).eq("blocked",o):await sb.from("blocks").insert({blocker:me,blocked:o});
+  if(r.error){toast("Action impossible");return}
+  S.blockedIds=bl?S.blockedIds.filter(function(x){return x!==o}):S.blockedIds.concat([o]);toast(bl?"Joueur débloqué":"Joueur bloqué");drawDM()};
+ var f=$("#dsf");if(f)f.onsubmit=async function(e){e.preventDefault();var t=$("#dtx").value.trim();if(!t)return;$("#dtx").value="";
+  var r=await sb.from("direct_messages").insert({conversation_id:S.openConv,text:t.slice(0,1000)});
+  if(r.error){toast("Message non envoyé : conversation impossible");$("#dtx").value=t;return}pollDM()}
+}
 function subscribe(){
  sb.removeAllChannels();
- S.ch=sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},pollNew).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},loadReacts).on("postgres_changes",{event:"*",schema:"public",table:"profiles"},loadPlayers).on("postgres_changes",{event:"*",schema:"public",table:"basketball_events"},function(){if(S.view==="events")loadEvents()}).subscribe()
+ S.ch=sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},pollNew).on("postgres_changes",{event:"INSERT",schema:"public",table:"direct_messages"},pollDM).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},loadReacts).on("postgres_changes",{event:"*",schema:"public",table:"profiles"},loadPlayers).on("postgres_changes",{event:"*",schema:"public",table:"basketball_events"},function(){if(S.view==="events")loadEvents()}).subscribe()
 }
 async function onUser(u){
  S.user=u;
- if(u){await loadPlayers();await loadMsgs();subscribe();
-  if(!S.poll){S.poll=setInterval(function(){pollNew();if(S.user&&S.view==="chat"&&!document.hidden)loadReacts()},5000);
-   document.addEventListener("visibilitychange",function(){if(S.user&&!document.hidden){if(S.view==="chat"){S.unread=0;nav()}pollNew();loadPlayers()}})}
+ if(u){await loadPlayers();await loadMsgs();await loadDMs();subscribe();
+  if(!S.poll){S.poll=setInterval(function(){pollNew();pollDM();if(S.user&&S.view==="chat"&&!document.hidden)loadReacts()},5000);
+   document.addEventListener("visibilitychange",function(){if(S.user&&!document.hidden){if(S.view==="chat"){S.unread=0;nav()}pollNew();pollDM();loadPlayers()}})}
   if(S.view==="auth")S.view=mine()?"players":"me"}
- else{sb.removeAllChannels();S.players=[];S.msgs=[];S.reacts={};S.unread=0;S.maxId=0;S.boot=false;S.view="home"}
+ else{sb.removeAllChannels();S.players=[];S.msgs=[];S.reacts={};S.unread=0;S.maxId=0;S.boot=false;S.convs=[];S.dms=[];S.dmMax=0;S.dmUnread=0;S.openConv=null;S.blockedIds=[];S.view="home"}
  draw()
 }
 draw();
