@@ -1,8 +1,8 @@
 /* BASKET CONNECT — JavaScript sans compilation.
    Pour activer Supabase, remplace les deux valeurs ci-dessous par celles de ton projet.
    Ne mets JAMAIS la clé service_role dans un fichier public. Utilise uniquement la clé anon/publishable. */
-const SUPABASE_URL = 'https://TON-PROJET.supabase.co';
-const SUPABASE_ANON_KEY = 'COLLE-ICI-TA-CLE-ANON';
+const SUPABASE_URL = 'https://hrsvecduiiyfokbyxolu.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY = 'sb_publishable_LVMQt_4F1tNEflOTcB4Jdw_7bQTxq2E';
 
 const isSupabaseConfigured = () => window.supabase && SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('TON-PROJET') && SUPABASE_ANON_KEY.length > 20 && !SUPABASE_ANON_KEY.includes('COLLE-ICI');
 const db = isSupabaseConfigured() ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
