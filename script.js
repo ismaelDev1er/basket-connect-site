@@ -2,22 +2,10 @@
    Pour activer Supabase, remplace les deux valeurs ci-dessous par celles de ton projet.
    Ne mets JAMAIS la clé service_role dans un fichier public. Utilise uniquement la clé anon/publishable. */
 const SUPABASE_URL = 'https://hrsvecduiiyfokbyxolu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyc3ZlY2R1aWl5Zm9rYnl4b2x1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4Mzc3NjksImV4cCI6MjEwNzQxMzc2OX0.3LWMAIfP2p4C1S0oIbL9Rczoe7unDNGv-R3Ob2C-yW4';
 
-const SUPABASE_ANON_KEY = 'sb_publishable_LVMQt_4F1tNEflOTcB4Jdw_7bQTxq2E';
-
-const isSupabaseConfigured = () =>
-    window.supabase &&
-    SUPABASE_URL.startsWith('https://') &&
-    !SUPABASE_URL.includes('TON-PROJET') &&
-    SUPABASE_ANON_KEY.length > 20 &&
-    !SUPABASE_ANON_KEY.includes('COLLE-ICI');
-
-const db = isSupabaseConfigured()
-    ? window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      )
-    : null;
+const isSupabaseConfigured = () => window.supabase && SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('TON-PROJET') && SUPABASE_ANON_KEY.length > 20 && !SUPABASE_ANON_KEY.includes('COLLE-ICI');
+const db = isSupabaseConfigured() ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let currentFilter = 'player';
 let authMode = 'signup';
 let allProfiles = [];
@@ -85,7 +73,7 @@ function renderProfiles() {
     grid.innerHTML = filtered.map(profileCard).join('');
     $('#directoryStatus').textContent = `${filtered.length} profil${filtered.length > 1 ? 's' : ''} affiché${filtered.length > 1 ? 's' : ''}.`;
   } else {
-    grid.innerHTML = `<article class="empty-state"><span class="empty-icon">${currentFilter === 'club' ? '🏀' : currentFilter === 'recruiter' ? '✦' : '⛹🏾'}</span><h3>Aucun profil pour le moment</h3><p>${db ? 'Aucun profil public ne correspond à cette recherche. Essaie une autre ville ou reviens plus tard.' : 'Configure Supabase dans script.js pour charger les profils réels. Tu peux aussi créer ton compte dès que la base est prête.'}</p><button class="btn btn-primary" data-open-auth="signup">${currentFilter === 'club' ? 'Inscrire mon club' : 'Rejoindre Basket Connect'} <span>↗</span></button></article>`;
+    grid.innerHTML = `<article class="empty-state"><span class="empty-icon">${currentFilter === 'club' ? '🏀' : currentFilter === 'recruiter' ? '✦' : '⛹🏾'}</span><h3>Aucun profil pour le moment</h3><p>${!db ? 'Configure Supabase dans script.js pour charger les profils réels.' : !currentUser ? 'Connecte-toi ou crée ton compte pour découvrir les profils de la communauté.' : 'Aucun profil public ne correspond à cette recherche. Essaie une autre ville ou reviens plus tard.'}</p><button class="btn btn-primary" data-open-auth="signup">${currentFilter === 'club' ? 'Inscrire mon club' : 'Rejoindre Basket Connect'} <span>↗</span></button></article>`;
     $('#directoryStatus').textContent = 'Aucun résultat pour ce filtre.';
     grid.querySelector('[data-open-auth]')?.addEventListener('click', () => openAuth('signup'));
   }
@@ -96,6 +84,12 @@ async function loadProfiles() {
     allProfiles = [];
     renderProfiles();
     $('#directoryStatus').textContent = 'Base non connectée — renseigne les clés Supabase dans script.js.';
+    return;
+  }
+  if (!currentUser) {
+    allProfiles = [];
+    renderProfiles();
+    $('#directoryStatus').textContent = 'Connecte-toi pour voir les profils de la communauté.';
     return;
   }
   $('#directoryStatus').textContent = 'Chargement des profils…';
@@ -137,19 +131,21 @@ async function submitAuth(event) {
   const password = $('#password').value;
   const username = $('#username').value.trim();
   const city = $('#city').value.trim();
+  const ageCat = $('#ageCat').value === 'minor' ? 'minor' : 'adult';
   submit.disabled = true;
   submit.textContent = authMode === 'signup' ? 'Création du compte…' : 'Connexion…';
   try {
     if (authMode === 'signup') {
       const userType = $('#userType').value;
-      const { data, error } = await db.auth.signUp({email, password, options:{data:{username, user_type:userType, city}}});
+      const { data, error } = await db.auth.signUp({email, password, options:{data:{username, user_type:userType, city, age_category:ageCat}}});
       if (error) throw error;
       if (data.user && data.session) {
-        const { error: profileError } = await db.from('profiles').upsert({id:data.user.id, username, user_type:userType, city, is_public:true, age_category:'adult'});
+        const { error: profileError } = await db.from('profiles').upsert({id:data.user.id, username, user_type:userType, city, is_public:true, age_category:ageCat});
         if (profileError) throw profileError;
         message.classList.add('success');
         message.textContent = 'Compte créé ! Ton profil est prêt.';
         showToast('Bienvenue dans Basket Connect !');
+        setTimeout(closeAuth, 900);
         await loadProfiles();
       } else {
         message.classList.add('success');
@@ -161,6 +157,7 @@ async function submitAuth(event) {
       message.classList.add('success');
       message.textContent = `Connexion réussie${data.user?.email ? ' : ' + data.user.email : ''}.`;
       showToast('Connexion réussie.');
+      setTimeout(closeAuth, 900);
       await loadProfiles();
     }
   } catch (error) {
@@ -174,7 +171,7 @@ async function submitAuth(event) {
 
 function init() {
   $('#currentYear').textContent = new Date().getFullYear();
-  $$('[data-open-auth]').forEach(button => button.addEventListener('click', () => openAuth(button.dataset.openAuth)));
+  $$('[data-open-auth]').forEach(button => button.addEventListener('click', () => { if (currentUser) { location.hash = '#annuaire'; } else { openAuth(button.dataset.openAuth); } }));
   $$('[data-auth-mode]').forEach(button => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
   $('#closeModal').addEventListener('click', closeAuth);
   $('#authModal').addEventListener('click', event => { if (event.target === $('#authModal')) closeAuth(); });
@@ -188,9 +185,211 @@ function init() {
   $('#directorySearch').addEventListener('input', renderProfiles);
   $('#menuToggle').addEventListener('click', () => $('#navLinks').classList.toggle('open'));
   $$('#navLinks a').forEach(link => link.addEventListener('click', () => $('#navLinks').classList.remove('open')));
+  initSession();
+  initPosters();
   loadProfiles();
   loadEvents();
   if (!db) console.info('Basket Connect fonctionne en mode aperçu. Configure Supabase dans script.js pour activer les comptes et les données en ligne.');
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+
+/* ===== SESSION (compte connecté) ===== */
+let currentUser = null;
+let currentProfile = null;
+
+async function ensureProfile(user) {
+  if (!db || !user) return null;
+  let { data } = await db.from('profiles').select('id, username, user_type').eq('id', user.id).maybeSingle();
+  if (!data) {
+    const meta = user.user_metadata || {};
+    const username = String(meta.username || (user.email || 'joueur').split('@')[0]).slice(0, 30);
+    const { error } = await db.from('profiles').upsert({
+      id: user.id, username,
+      user_type: ['player', 'club', 'recruiter'].includes(meta.user_type) ? meta.user_type : 'player',
+      city: meta.city ? String(meta.city).slice(0, 50) : null,
+      is_public: true, age_category: meta.age_category === 'minor' ? 'minor' : 'adult'
+    });
+    if (error) { console.warn('Création du profil:', error.message); return null; }
+    ({ data } = await db.from('profiles').select('id, username, user_type').eq('id', user.id).maybeSingle());
+  }
+  return data;
+}
+
+function updateHeader() {
+  const box = $('#headerActions');
+  if (!box) return;
+  if (currentUser) {
+    box.innerHTML = `<span class="user-chip">${escapeHTML(currentProfile?.username || currentUser.email || 'Membre')}</span><button class="btn btn-quiet" id="logoutBtn">Déconnexion</button>`;
+    $('#logoutBtn').addEventListener('click', async () => { await db.auth.signOut(); showToast('Tu es déconnecté.'); });
+  } else {
+    box.innerHTML = `<button class="btn btn-quiet" data-open-auth="login">Connexion</button><button class="btn btn-primary" data-open-auth="signup">Rejoindre la communauté <span>↗</span></button>`;
+    $$('#headerActions [data-open-auth]').forEach(button => button.addEventListener('click', () => openAuth(button.dataset.openAuth)));
+  }
+}
+
+async function applySession(user) {
+  currentUser = user || null;
+  currentProfile = user ? await ensureProfile(user) : null;
+  updateHeader();
+  await Promise.all([loadProfiles(), loadPosters()]);
+}
+
+function initSession() {
+  if (!db) { updateHeader(); return; }
+  db.auth.onAuthStateChange((_event, session) => { setTimeout(() => applySession(session?.user), 0); });
+}
+
+/* ===== AFFICHES ===== */
+let posters = [];
+const safeUrl = (value) => { try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; } };
+
+function posterDownloadUrl(poster) {
+  const ext = ((poster.poster_path || '').match(/\.[a-z0-9]+$/i) || ['.jpg'])[0];
+  const name = (poster.title || 'affiche').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'affiche';
+  if (db && poster.poster_path) return db.storage.from('event-posters').getPublicUrl(poster.poster_path, { download: `affiche-${name}${ext}` }).data.publicUrl;
+  return safeUrl(poster.poster_url);
+}
+
+function emptyPosters(text, withLogin) {
+  return `<article class="empty-state"><span class="empty-icon">🏀</span><h3>Affiches de la communauté</h3><p>${escapeHTML(text)}</p>${withLogin ? '<button class="btn btn-primary" data-open-auth="login">Se connecter</button>' : ''}</article>`;
+}
+
+function posterCard(poster) {
+  const date = new Date(poster.event_date).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+  const mine = currentUser && poster.created_by === currentUser.id;
+  const src = safeUrl(poster.poster_url);
+  return `<article class="poster-card"><button type="button" class="poster-open" data-poster-view="${poster.id}" aria-label="Voir l’affiche en grand : ${escapeHTML(poster.title)}"><img src="${escapeHTML(src)}" alt="Affiche : ${escapeHTML(poster.title)}" loading="lazy"></button><div class="poster-tools"><button type="button" class="btn btn-outline" data-poster-view="${poster.id}">Voir en grand</button><a class="btn btn-primary" href="${escapeHTML(posterDownloadUrl(poster))}" download rel="noopener">Télécharger</a></div><span class="poster-kind">${escapeHTML(poster.kind)}</span><h3>${escapeHTML(poster.title)}</h3><div class="poster-meta"><span>📅 ${escapeHTML(date)}</span><span>📍 ${escapeHTML(poster.location)}</span></div><p><strong>Organisateur :</strong> ${escapeHTML(poster.organizer)}</p>${poster.description ? `<p>${escapeHTML(poster.description)}</p>` : ''}${mine ? `<button type="button" class="poster-delete" data-poster-delete="${poster.id}" data-poster-path="${escapeHTML(poster.poster_path || '')}">Supprimer mon affiche</button>` : ''}</article>`;
+}
+
+async function loadPosters() {
+  const grid = $('#postersGrid'), status = $('#postersStatus');
+  if (!grid) return;
+  const bindLogin = () => grid.querySelectorAll('[data-open-auth]').forEach(button => button.addEventListener('click', () => openAuth(button.dataset.openAuth)));
+  if (!db) { grid.innerHTML = emptyPosters('Configure Supabase dans script.js pour afficher les affiches.', false); return; }
+  if (!currentUser) { posters = []; grid.innerHTML = emptyPosters('Connecte-toi pour voir les affiches de la communauté et publier la tienne.', true); status.textContent = ''; bindLogin(); return; }
+  status.textContent = 'Chargement des affiches…';
+  const { data, error } = await db.from('basketball_events').select('id, title, kind, organizer, location, event_date, description, poster_url, poster_path, created_by').order('event_date', { ascending: true }).limit(100);
+  if (error) { console.warn('Chargement affiches:', error.message); status.textContent = 'Impossible de charger les affiches pour le moment.'; return; }
+  const now = Date.now();
+  posters = (data || []).sort((a, b) => {
+    const A = new Date(a.event_date).getTime(), B = new Date(b.event_date).getTime(), upA = A >= now, upB = B >= now;
+    return upA !== upB ? (upA ? -1 : 1) : (upA ? A - B : B - A);
+  });
+  grid.innerHTML = posters.length ? posters.map(posterCard).join('') : emptyPosters('Aucune affiche pour le moment. Publie la première affiche de la communauté !', false);
+  status.textContent = posters.length ? `${posters.length} affiche${posters.length > 1 ? 's' : ''}.` : '';
+}
+
+function openPoster(id) {
+  const list = posters;
+  let index = list.findIndex(poster => String(poster.id) === String(id));
+  if (index < 0) return;
+  const previous = document.activeElement;
+  const overlay = document.createElement('div');
+  overlay.className = 'lb';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', 'Affiche en grand');
+  const show = () => {
+    const poster = list[index];
+    overlay.innerHTML = `<div class="lb-bar"><strong>${escapeHTML(poster.title)}</strong><span class="lb-act">${list.length > 1 ? '<button type="button" class="btn btn-outline" data-lb="prev" aria-label="Affiche précédente">←</button><button type="button" class="btn btn-outline" data-lb="next" aria-label="Affiche suivante">→</button>' : ''}<a class="btn btn-primary" href="${escapeHTML(posterDownloadUrl(poster))}" download rel="noopener">Télécharger l’image</a><button type="button" class="btn btn-outline" data-lb="close">Fermer</button></span></div><div class="lb-img"><img src="${escapeHTML(safeUrl(poster.poster_url))}" alt="Affiche : ${escapeHTML(poster.title)}"></div>`;
+  };
+  const close = () => { document.removeEventListener('keydown', onKey); overlay.remove(); document.body.style.overflow = ''; if (previous && previous.focus) previous.focus(); };
+  const onKey = (event) => {
+    if (event.key === 'Escape') close();
+    else if (list.length > 1 && event.key === 'ArrowRight') { index = (index + 1) % list.length; show(); }
+    else if (list.length > 1 && event.key === 'ArrowLeft') { index = (index + list.length - 1) % list.length; show(); }
+  };
+  overlay.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-lb]');
+    if (button) {
+      const action = button.dataset.lb;
+      if (action === 'close') close();
+      else { index = (index + (action === 'next' ? 1 : list.length - 1)) % list.length; show(); }
+      return;
+    }
+    if (event.target === overlay || event.target.classList.contains('lb-img')) close();
+  });
+  show();
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+  document.addEventListener('keydown', onKey);
+  overlay.querySelector('[data-lb="close"]')?.focus();
+}
+
+function openPosterForm() {
+  if (!db || !currentUser) { showToast('Connecte-toi pour publier une affiche.'); openAuth('login'); return; }
+  if (!currentProfile) { showToast('Ton profil n’est pas prêt. Reconnecte-toi puis réessaie.'); return; }
+  $('#pMsg').textContent = '';
+  $('#posterModal').classList.add('open');
+  $('#posterModal').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => $('#pTitle').focus(), 100);
+}
+function closePosterForm() {
+  $('#posterModal').classList.remove('open');
+  $('#posterModal').setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+async function submitPoster(event) {
+  event.preventDefault();
+  const message = $('#pMsg'), submit = $('#pSubmit'), file = $('#pFile').files[0];
+  message.classList.remove('success');
+  message.textContent = '';
+  if (!db || !currentUser) { message.textContent = 'Connecte-toi pour publier.'; return; }
+  const title = $('#pTitle').value.trim(), organizer = $('#pOrg').value.trim(), place = $('#pPlace').value.trim(), when = $('#pDate').value;
+  if (!title || !organizer || !place || !when || !file) { message.textContent = 'Remplis tous les champs obligatoires.'; return; }
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { message.textContent = 'Format accepté : JPG, PNG ou WebP.'; return; }
+  if (file.size > 5 * 1024 * 1024) { message.textContent = 'L’image dépasse 5 Mo.'; return; }
+  submit.disabled = true;
+  submit.textContent = 'Publication en cours…';
+  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+  const path = `${currentUser.id}/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
+  try {
+    const upload = await db.storage.from('event-posters').upload(path, file, { contentType: file.type, upsert: false });
+    if (upload.error) throw new Error('Envoi de l’image impossible : ' + upload.error.message);
+    const publicUrl = db.storage.from('event-posters').getPublicUrl(path).data.publicUrl;
+    const insert = await db.from('basketball_events').insert({ title, kind: $('#pKind').value, organizer, location: place, event_date: new Date(when).toISOString(), description: $('#pDesc').value.trim(), poster_url: publicUrl, poster_path: path, created_by: currentUser.id });
+    if (insert.error) { await db.storage.from('event-posters').remove([path]); throw new Error('Enregistrement impossible : ' + insert.error.message); }
+    $('#posterForm').reset();
+    $('#pPreview').classList.remove('show');
+    closePosterForm();
+    showToast('Affiche publiée !');
+    await loadPosters();
+    $('#affiches').scrollIntoView({ behavior: 'smooth' });
+  } catch (error) {
+    message.textContent = error.message || 'Une erreur est survenue.';
+  } finally {
+    submit.disabled = false;
+    submit.innerHTML = 'Publier l’affiche <span>↗</span>';
+  }
+}
+
+function initPosters() {
+  $('#openPosterForm').addEventListener('click', openPosterForm);
+  $('#closePoster').addEventListener('click', closePosterForm);
+  $('#posterModal').addEventListener('click', event => { if (event.target === $('#posterModal')) closePosterForm(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && $('#posterModal').classList.contains('open')) closePosterForm(); });
+  $('#posterForm').addEventListener('submit', submitPoster);
+  $('#pFile').addEventListener('change', event => {
+    const file = event.target.files[0], preview = $('#pPreview');
+    if (preview.dataset.url) URL.revokeObjectURL(preview.dataset.url);
+    if (file && file.type.startsWith('image/')) { const url = URL.createObjectURL(file); preview.dataset.url = url; preview.src = url; preview.classList.add('show'); }
+    else preview.classList.remove('show');
+  });
+  $('#postersGrid').addEventListener('click', async event => {
+    const view = event.target.closest('[data-poster-view]');
+    if (view) { openPoster(view.dataset.posterView); return; }
+    const del = event.target.closest('[data-poster-delete]');
+    if (!del || !currentUser) return;
+    if (!confirm('Supprimer cette affiche ?')) return;
+    del.disabled = true;
+    const { error } = await db.from('basketball_events').delete().eq('id', del.dataset.posterDelete).eq('created_by', currentUser.id);
+    if (error) { del.disabled = false; showToast('Suppression impossible : ' + error.message); return; }
+    if (del.dataset.posterPath) await db.storage.from('event-posters').remove([del.dataset.posterPath]);
+    showToast('Affiche supprimée.');
+    loadPosters();
+  });
+}
