@@ -1,0 +1,9 @@
+{
+  "name": "Basket Connect",
+  "short_name": "BasketConnect",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#15171c",
+  "theme_color": "#15171c",
+  "description": "La communauté du basketball burkinabè."
+}
