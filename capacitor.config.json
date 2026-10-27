@@ -1,9 +1,0 @@
-{
-  "appId": "bf.basketconnect.app",
-  "appName": "Basket Connect",
-  "webDir": ".",
-  "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https"
-  }
-}
