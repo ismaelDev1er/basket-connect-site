@@ -75,8 +75,8 @@ label{display:grid;gap:6px;font-size:.85rem;color:var(--mu)}
 (function(){
 "use strict";
 /* ====== À REMPLIR (Supabase > Project Settings > API) ====== */
-var SUPABASE_URL="https://jaeyzrwaehxlgqzwgbxw.supabase.co";
-var SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphZXl6cndhZWh4bGdxendnYnh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MzgwMzAsImV4cCI6MjEwNzQxNDAzMH0.qOXgX7FH5nEF1U-a2-P9bPbYabnnTMhH7OjdZpxlUWI";
+var SUPABASE_URL="https://hrsvecduiiyfokbyxolu.supabase.co";
+var SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyc3ZlY2R1aWl5Zm9rYnl4b2x1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4Mzc3NjksImV4cCI6MjEwNzQxMzc2OX0.3LWMAIfP2p4C1S0oIbL9Rczoe7unDNGv-R3Ob2C-yW4";
 /* La clé "anon" est publique par conception : la sécurité vient des règles RLS de setup.sql. */
 
 var $=function(s,e){return (e||document).querySelector(s)};
@@ -144,9 +144,9 @@ function players(){
  var list=S.players.slice().sort(function(a,b){return (a.pseudo||"").localeCompare(b.pseudo||"","fr")}),c=myClub();
  main.innerHTML='<h2 style="margin:24px 0 4px">Joueurs</h2>'+(c&&!c.verifie?'<p class="note">Votre club est en attente de validation : vous pourrez inviter des joueurs dès qu’il sera validé.</p>':"")+'<div class="row"><input id="q" type="search" aria-label="Rechercher" placeholder="Rechercher par nom, poste ou ville…" style="max-width:420px"><select id="pf" aria-label="Poste" style="max-width:180px"><option value="">Tous les postes</option>'+POS.map(function(p){return '<option>'+p+'</option>'}).join("")+'</select><label style="display:flex;align-items:center;gap:8px;width:auto"><input id="sc" type="checkbox" style="width:auto"'+(c?" checked":"")+'>Sans club uniquement</label></div><div class="grid" id="g"></div>';
  function d(){var q=$("#q").value.toLowerCase(),pf=$("#pf").value,sc=$("#sc").checked;
-  var r=list.filter(function(p){return (!pf||p.poste===pf)&&(!sc||(p.looking_for_team&&!clubOf(p.id)))&&(!q||((p.pseudo||"")+" "+(p.poste||"")+" "+(p.ville||"")).toLowerCase().indexOf(q)>-1)});
-  $("#g").innerHTML=r.length?r.map(function(p,i){var k=clubOf(p.id),iv=invited(p.id),act=canRecruit()&&p.looking_for_team&&!k&&p.id!==S.user.id?'<div class="row" style="margin-top:12px"><button type="button" class="btn" style="padding:8px 16px" data-iv="'+esc(p.id)+'"'+(iv?" disabled":"")+'>'+(iv?"Invité":"Inviter")+'</button><button type="button" class="btn g" style="padding:8px 16px" data-c="'+esc(p.id)+'">Message</button></div>':"";
-   return '<article class="card" style="animation-delay:'+(i%8)*50+'ms"><div class="av">'+avh(p)+'</div><h3>'+esc(p.pseudo)+'</h3><small>'+esc(p.ville||"")+'</small><div style="margin-top:8px"><span class="pill">'+esc(p.poste||"")+'</span>'+(p.taille?'<span class="pill">'+esc(p.taille)+' cm</span>':"")+'<span class="pill">'+esc(p.niveau||"")+'</span>'+(k?'<span class="pill" style="color:var(--tx)">'+esc(k.nom)+'</span>':p.looking_for_team?'<span class="pill" style="background:rgba(255,122,26,.22);color:var(--tx)">Cherche un club</span>':"")+'</div>'+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+act+'</article>'}).join(""):'<div class="panel" style="grid-column:1/-1;color:var(--mu)">Aucun joueur pour le moment.</div>'}
+  var r=list.filter(function(p){return (!pf||p.poste===pf)&&(!sc||(p.sans_club&&!clubOf(p.id)))&&(!q||((p.pseudo||"")+" "+(p.poste||"")+" "+(p.ville||"")).toLowerCase().indexOf(q)>-1)});
+  $("#g").innerHTML=r.length?r.map(function(p,i){var k=clubOf(p.id),iv=invited(p.id),act=canRecruit()&&p.sans_club&&!k&&p.id!==S.user.id?'<div class="row" style="margin-top:12px"><button type="button" class="btn" style="padding:8px 16px" data-iv="'+esc(p.id)+'"'+(iv?" disabled":"")+'>'+(iv?"Invité":"Inviter")+'</button><button type="button" class="btn g" style="padding:8px 16px" data-c="'+esc(p.id)+'">Message</button></div>':"";
+   return '<article class="card" style="animation-delay:'+(i%8)*50+'ms"><div class="av">'+avh(p)+'</div><h3>'+esc(p.pseudo)+'</h3><small>'+esc(p.ville||"")+'</small><div style="margin-top:8px"><span class="pill">'+esc(p.poste||"")+'</span>'+(p.taille?'<span class="pill">'+esc(p.taille)+' cm</span>':"")+'<span class="pill">'+esc(p.niveau||"")+'</span>'+(k?'<span class="pill" style="color:var(--tx)">'+esc(k.nom)+'</span>':p.sans_club?'<span class="pill" style="background:rgba(255,122,26,.22);color:var(--tx)">Cherche un club</span>':"")+'</div>'+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+act+'</article>'}).join(""):'<div class="panel" style="grid-column:1/-1;color:var(--mu)">Aucun joueur pour le moment.</div>'}
  $("#q").oninput=d;$("#pf").onchange=d;$("#sc").onchange=d;d()
 }
 function profile(){
@@ -159,7 +159,7 @@ function profile(){
  '<label>Niveau<select id="ni">'+LVL.map(function(x){return '<option'+(p.niveau===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label>'+
  '<label class="full">Ville<input id="vi" maxlength="60" value="'+esc(p.ville||"")+'"></label>'+
  '<label class="full">Présentation<textarea id="bi" rows="3" maxlength="240">'+esc(p.bio||"")+'</textarea></label>'+
- '<label class="full jo" style="display:flex;align-items:center;gap:10px"><input id="sc" type="checkbox" style="width:auto"'+(p.looking_for_team?" checked":"")+'>Je recherche un club (visible des clubs, qui pourront m’inviter)</label>'+
+ '<label class="full jo" style="display:flex;align-items:center;gap:10px"><input id="sc" type="checkbox" style="width:auto"'+(p.sans_club?" checked":"")+'>Je recherche un club (visible des clubs, qui pourront m’inviter)</label>'+
  '<label class="full" style="display:flex;align-items:center;gap:10px"><input id="vs" type="checkbox" style="width:auto"'+(p.visible===false?"":" checked")+'>Afficher mon profil aux autres joueurs</label>'+
  '<div class="full row"><button class="btn" type="submit">Enregistrer</button>'+(p.pseudo?'<button type="button" class="btn g" id="dl">Supprimer mon profil</button>':"")+'</div></form>'+
  '<p class="note">Ne publiez ni téléphone, ni adresse. Les joueurs mineurs doivent s’inscrire avec l’accord d’un responsable.</p>';
@@ -167,7 +167,7 @@ function profile(){
  $("#ph").onchange=function(e){var f=e.target.files[0];if(!f)return;shrink(f).then(function(d){photo=d;pv()}).catch(function(){toast("Image illisible")})};
  var rp=$("#rp");if(rp)rp.onclick=function(){photo=null;pv();rp.remove()};
  $("#f").onsubmit=async function(e){e.preventDefault();var b=e.submitter;b.disabled=true;
-  var r=await sb.from("profiles").upsert({id:S.user.id,pseudo:$("#ps").value.trim().slice(0,30),looking_for_team:$("#sc").checked,poste:$("#po").value,taille:+$("#ta").value||null,niveau:$("#ni").value,ville:$("#vi").value.trim().slice(0,60),bio:$("#bi").value.trim().slice(0,240),visible:$("#vs").checked,photo:photo});
+  var r=await sb.from("profiles").upsert({id:S.user.id,pseudo:$("#ps").value.trim().slice(0,30),sans_club:$("#sc").checked,poste:$("#po").value,taille:+$("#ta").value||null,niveau:$("#ni").value,ville:$("#vi").value.trim().slice(0,60),bio:$("#bi").value.trim().slice(0,240),visible:$("#vs").checked,photo:photo});
   if(r.error){toast("Enregistrement impossible : "+r.error.message);b.disabled=false;return}
   await loadPlayers();toast("Profil enregistré");setView("players")};
  var dl=$("#dl");if(dl)dl.onclick=async function(){if(!confirm("Supprimer votre profil et vos messages ?"))return;var r=await sb.from("profiles").delete().eq("id",S.user.id);if(r.error){toast("Suppression impossible");return}await loadPlayers();await loadMsgs();setView("me")}
