@@ -95,10 +95,10 @@
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>
 
-            <a href="#connexion" class="login-button">
+            <button type="button" class="login-button" id="loginButton">
                 <i class="fa-solid fa-user"></i>
                 Connexion
-            </a>
+            </button>
 
             <button class="menu-button" id="menuButton">
                 <i class="fa-solid fa-bars"></i>
@@ -698,7 +698,7 @@
 
             <a href="#recrutement">Créer un profil</a>
             <a href="#">Créer un club</a>
-            <a href="#">Connexion</a>
+            <a href="#" id="footerLogin">Connexion</a>
             <a href="#">Administration</a>
 
         </div>
@@ -735,6 +735,35 @@
     </div>
 
 </footer>
+
+
+<!-- ================================
+     CONNEXION
+================================ -->
+
+<div class="auth-modal" id="authModal" hidden>
+    <div class="auth-box" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+
+        <button type="button" class="close-auth" id="closeAuth" aria-label="Fermer">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3 id="authTitle">Connexion</h3>
+
+        <form id="loginForm">
+            <input type="email" id="loginEmail" placeholder="Adresse email" required autocomplete="email">
+            <input type="password" id="loginPassword" placeholder="Mot de passe" required autocomplete="current-password">
+            <button type="submit" class="btn btn-primary">Se connecter</button>
+            <p id="loginError" class="auth-error"></p>
+        </form>
+
+        <div id="sessionBox" hidden>
+            <p>Connecté en tant que <strong id="sessionEmail"></strong></p>
+            <button type="button" class="btn btn-outline-dark" id="logoutButton">Se déconnecter</button>
+        </div>
+
+    </div>
+</div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>

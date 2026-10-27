@@ -1014,3 +1014,107 @@ document.addEventListener(
 
     }
 );
+
+
+/* =========================================
+   CONNEXION
+========================================= */
+
+const loginButton = document.getElementById("loginButton");
+const footerLogin = document.getElementById("footerLogin");
+const authModal = document.getElementById("authModal");
+const closeAuth = document.getElementById("closeAuth");
+const loginForm = document.getElementById("loginForm");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+const sessionBox = document.getElementById("sessionBox");
+const sessionEmail = document.getElementById("sessionEmail");
+const logoutButton = document.getElementById("logoutButton");
+
+
+function messageConnexion(err) {
+
+    const text = (err && err.message) || "";
+
+    if (text.includes("Invalid login credentials"))
+        return "Email ou mot de passe incorrect.";
+
+    if (text.includes("Email not confirmed"))
+        return "Email non confirmé. Dans Supabase (Authentication → Users), confirmez ce compte.";
+
+    return "Connexion impossible : " + text;
+
+}
+
+
+async function refreshAuthView() {
+
+    const user = await currentUser();
+
+    loginForm.hidden = !!user;
+    sessionBox.hidden = !user;
+    sessionEmail.textContent = user ? user.email : "";
+    loginError.textContent = "";
+
+}
+
+
+async function openAuth() {
+
+    authModal.hidden = false;
+    await refreshAuthView();
+
+}
+
+
+loginButton.addEventListener("click", openAuth);
+
+footerLogin.addEventListener("click", event => {
+    event.preventDefault();
+    openAuth();
+});
+
+closeAuth.addEventListener("click", () => {
+    authModal.hidden = true;
+});
+
+authModal.addEventListener("click", event => {
+    if (event.target === authModal)
+        authModal.hidden = true;
+});
+
+
+loginForm.addEventListener("submit", async event => {
+
+    event.preventDefault();
+
+    const submit = loginForm.querySelector("button[type='submit']");
+    submit.disabled = true;
+    loginError.textContent = "";
+
+    try {
+
+        await signIn(loginEmail.value.trim(), loginPassword.value);
+        loginPassword.value = "";
+        await refreshAuthView();
+
+    } catch (err) {
+
+        loginError.textContent = messageConnexion(err);
+
+    } finally {
+
+        submit.disabled = false;
+
+    }
+
+});
+
+
+logoutButton.addEventListener("click", async () => {
+
+    await signOut();
+    await refreshAuthView();
+
+});

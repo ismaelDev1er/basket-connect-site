@@ -104,3 +104,22 @@ async function loadBasketData() {
         cities: citiesRes.data.map(c => c.city)
     };
 }
+
+
+// ---------- Authentification ----------
+
+async function signIn(email, password) {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data.user;
+}
+
+async function signOut() {
+    const { error } = await db.auth.signOut();
+    if (error) throw error;
+}
+
+async function currentUser() {
+    const { data } = await db.auth.getUser();
+    return data ? data.user : null;
+}

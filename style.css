@@ -2061,3 +2061,31 @@ td {
     }
 
 }
+
+/* ===== Connexion ===== */
+button.login-button { border: 0; cursor: pointer; font: inherit; }
+
+.auth-modal {
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(0, 0, 0, .6);
+}
+.auth-modal[hidden] { display: none; }
+
+.auth-box {
+    position: relative; width: 100%; max-width: 380px;
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 32px; border-radius: 16px; background: #fff; color: #111;
+}
+.auth-box h3 { margin: 0 0 8px; }
+.auth-box form, .auth-box #sessionBox { display: flex; flex-direction: column; gap: 12px; }
+.auth-box input {
+    padding: 12px 14px; border: 1px solid #ccd3dc; border-radius: 10px; font: inherit;
+}
+.auth-box .btn { cursor: pointer; }
+.auth-box button:disabled { opacity: .6; cursor: wait; }
+.close-auth {
+    position: absolute; top: 12px; right: 12px;
+    border: 0; background: none; color: #111; font-size: 20px; cursor: pointer;
+}
+.auth-error { min-height: 1em; margin: 0; color: #d92d20; font-size: 14px; }
