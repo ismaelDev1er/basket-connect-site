@@ -1,42 +1,65 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#15171c">
-  <meta name="description" content="Basket Connect — joueurs, clubs et basketball au Burkina Faso.">
-  <title>Basket Connect</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.webmanifest">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basket Connect — Le basketball burkinabè se retrouve ici</title>
+<meta name="description" content="Joueurs, clubs et recruteurs de basketball au Burkina Faso, dans un seul espace.">
+<meta name="theme-color" content="#15171c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <a class="brand" href="#" aria-label="Basket Connect accueil"><span class="ball">BC</span><span>Basket<span class="orange">Connect</span></span></a>
-  <nav><a href="#joueurs">Joueurs</a><a href="#clubs">Clubs</a><a href="#communaute">Communauté</a><a href="#evenements">Matchs</a></nav>
-  <div class="actions"><button class="btn ghost" id="login-open">Connexion</button><button class="btn primary" id="signup-open">Créer un compte</button><button class="icon-btn" id="menu-toggle" aria-label="Ouvrir le menu">☰</button></div>
+<header>
+  <div class="logo">Basket<b>Connect</b></div>
+  <nav>
+    <a id="btn-profile" class="btn hidden" href="profile.html" style="display:inline-flex;align-items:center;text-decoration:none">Mon profil</a>
+    <span id="who" class="meta hidden"></span>
+    <button class="btn" id="btn-login">Se connecter</button>
+    <button class="btn primary" id="btn-signup">Créer un compte</button>
+    <button class="btn hidden" id="btn-logout">Se déconnecter</button>
+  </nav>
 </header>
 <main>
-  <section class="hero">
-    <div class="hero-copy"><span class="eyebrow">LE BASKETBALL BURKINABÈ, ENSEMBLE</span><h1>Le talent mérite<br><span class="gradient">d’être découvert.</span></h1>
-      <p>La plateforme qui rapproche les joueurs, les clubs et les recruteurs de basketball au Burkina Faso.</p>
-      <div class="hero-buttons"><a class="btn primary" href="#joueurs">Découvrir les joueurs ↗</a><button class="btn ghost" id="hero-signup">Rejoindre Basket Connect</button></div>
-      <div class="stats"><div><strong>Joueurs</strong><span>Des profils sportifs</span></div><div><strong>Clubs</strong><span>Une communauté unie</span></div><div><strong>Opportunités</strong><span>Le prochain niveau</span></div></div>
+  <div class="hero">
+    <h1>Montre ton jeu. Trouve ton club.</h1>
+    <p>Basket Connect réunit les joueurs, les clubs et les recruteurs de basketball du Burkina Faso. Crée ton profil sportif et choisis ce que les autres peuvent voir.</p>
+    <button class="btn primary" id="cta-signup">Créer mon profil joueur</button>
+    <a class="btn" href="#annuaire" style="display:inline-flex;align-items:center;text-decoration:none">Voir les joueurs</a>
+  </div>
+  <section id="annuaire">
+    <h2>Joueurs</h2>
+    <div class="filters" role="search">
+      <label class="sr" for="f-q">Nom</label><input id="f-q" placeholder="Rechercher un nom">
+      <label class="sr" for="f-city">Ville</label><input id="f-city" placeholder="Ville">
+      <label class="sr" for="f-pos">Poste</label>
+      <select id="f-pos"><option value="">Tous les postes</option><option>Meneur</option><option>Arrière</option><option>Ailier</option><option>Ailier fort</option><option>Pivot</option></select>
+      <label class="sr" for="f-level">Niveau</label>
+      <select id="f-level"><option value="">Tous les niveaux</option><option>Débutant</option><option>Amateur</option><option>Confirmé</option><option>Professionnel</option></select>
     </div>
-    <div class="hero-art"><div class="orb orb1"></div><div class="orb orb2"></div><div class="court"><div class="court-circle"></div><div class="court-line"></div><div class="basket-symbol">🏀</div><span class="court-label">TON JEU. TON AVENIR.</span></div><div class="floating-card"><span class="status-dot"></span><div><b>Nouvelle opportunité</b><small>Les clubs découvrent les talents</small></div></div></div>
+    <div id="players" class="grid" aria-live="polite"></div>
+    <p id="status" class="msg"></p>
   </section>
-  <section class="section" id="joueurs"><div class="section-head"><div><span class="eyebrow">REPÉRAGE DE TALENTS</span><h2>Découvrir les joueurs</h2><p>Seuls les profils rendus publics par leurs propriétaires sont affichés.</p></div><button class="btn ghost" id="refresh-players">Actualiser ↻</button></div>
-    <div class="filters"><input id="player-search" placeholder="Rechercher un pseudo ou un nom public"><select id="city-filter"><option value="">Toutes les villes</option><option>Bobo-Dioulasso</option><option>Ouagadougou</option><option>Koudougou</option><option>Banfora</option><option>Autre</option></select><select id="position-filter"><option value="">Tous les postes</option><option>Meneur</option><option>Arrière</option><option>Ailier</option><option>Ailier fort</option><option>Pivot</option></select></div>
-    <div id="players-grid" class="cards-grid"><div class="empty-state">Configure Supabase pour charger les profils publics.</div></div>
-  </section>
-  <section class="section clubs-section" id="clubs"><div class="section-head"><div><span class="eyebrow">ENSEMBLE PLUS FORTS</span><h2>Les clubs</h2><p>Les clubs pourront présenter leurs équipes et leurs opportunités.</p></div><button class="btn primary" id="club-signup">Créer un compte club</button></div><div class="feature-grid"><article class="feature"><span class="feature-icon">🏆</span><h3>Profil de club</h3><p>Présentez votre ville, vos catégories, votre staff et votre effectif.</p></article><article class="feature"><span class="feature-icon">🔎</span><h3>Recrutement</h3><p>Publiez des essais et suivez les candidatures des joueurs.</p></article><article class="feature"><span class="feature-icon">📈</span><h3>Progression</h3><p>Valorisez l’expérience, les statistiques et les performances.</p></article></div></section>
-  <section class="section community-section" id="communaute"><div><span class="eyebrow">LA COMMUNAUTÉ</span><h2>Le basket nous rassemble.</h2><p>Publications, actualités, réactions et échanges dans un espace réservé aux membres connectés.</p><button class="btn primary" id="community-open">Accéder à la communauté</button></div><div class="community-mark">BC<span>+</span></div></section>
-  <section class="section" id="evenements"><div class="section-head"><div><span class="eyebrow">AU CŒUR DU JEU</span><h2>Matchs & compétitions</h2><p>Les affiches et événements sont accessibles aux membres connectés.</p></div><button class="btn ghost" id="events-open">Voir les événements</button></div><div class="feature-grid"><article class="feature"><span class="feature-icon">📅</span><h3>Calendrier</h3><p>Championnats, coupes, matchs amicaux et tournois 3x3.</p></article><article class="feature"><span class="feature-icon">📊</span><h3>Résultats</h3><p>Résultats, classements et statistiques de match.</p></article><article class="feature"><span class="feature-icon">🔔</span><h3>Notifications</h3><p>Reste informé des événements qui te concernent.</p></article></div></section>
 </main>
-<footer><a class="brand" href="#"><span class="ball">BC</span><span>Basket<span class="orange">Connect</span></span></a><p>Le basketball burkinabè se connecte ici.</p><small>© <span id="year"></span> Basket Connect — Construisons la communauté.</small></footer>
+<footer>Basket Connect — Version de test. Les profils privés ne sont jamais affichés.</footer>
 
-<dialog id="auth-dialog"><form method="dialog" class="dialog-close"><button class="icon-btn" aria-label="Fermer">✕</button></form><span class="eyebrow">BIENVENUE DANS L'ÉQUIPE</span><h2 id="auth-title">Connexion</h2><p id="auth-description">Connecte-toi pour rejoindre la communauté Basket Connect.</p>
-<form id="auth-form"><label>Adresse e-mail<input type="email" id="auth-email" autocomplete="email" required placeholder="toi@exemple.com"></label><label>Mot de passe<input type="password" id="auth-password" autocomplete="current-password" minlength="8" required placeholder="8 caractères minimum"></label><div id="signup-fields" hidden><label>Nom public / pseudo<input id="auth-pseudo" maxlength="40" placeholder="Ton pseudo"></label><label>Type de compte<select id="auth-role"><option value="player">Joueur / joueuse</option><option value="supporter">Supporter</option><option value="club">Club</option><option value="recruiter">Recruteur (permissions après vérification)</option></select></label></div><button class="btn primary full" type="submit" id="auth-submit">Se connecter</button><button class="text-btn" type="button" id="forgot-password">Mot de passe oublié ?</button></form><p id="auth-message" class="message" role="status"></p><p class="switch-auth"><span id="switch-label">Nouveau ici ?</span> <button class="text-btn" id="switch-auth" type="button">Créer un compte</button></p></dialog>
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script><script src="app.js"></script>
-</body></html>
+<dialog id="dlg">
+  <form id="auth-form">
+    <h2 id="dlg-title">Se connecter</h2>
+    <label id="l-name" class="hidden">Nom public<input id="a-name" maxlength="40" autocomplete="nickname"></label>
+    <label id="l-type" class="hidden">Je suis
+      <select id="a-type"><option value="player">Joueur</option><option value="club">Club</option><option value="recruiter">Recruteur</option><option value="supporter">Supporter</option></select></label>
+    <label>Adresse e-mail<input id="a-email" type="email" required autocomplete="email"></label>
+    <label>Mot de passe (8 caractères minimum)<input id="a-pass" type="password" minlength="8" required autocomplete="current-password"></label>
+    <p id="a-msg" class="msg" role="alert"></p>
+    <div class="row"><button class="btn primary" id="a-submit" type="submit">Se connecter</button><button class="btn" type="button" id="a-cancel">Annuler</button></div>
+    <button class="btn" type="button" id="a-reset">Mot de passe oublié</button>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
