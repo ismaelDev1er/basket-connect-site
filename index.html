@@ -82,7 +82,7 @@ var SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 var $=function(s,e){return (e||document).querySelector(s)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
 var POS=["Meneur","Arrière","Ailier","Ailier fort","Pivot"],LVL=["Loisir","Club","Régional","National"];
-var S={view:"home",user:null,players:[],msgs:[],mode:"in",ch:null,reacts:{},unread:0,maxId:0,boot:false,drawn:null,sig:null,prives:[],pMax:null,peer:null};
+var S={view:"home",user:null,players:[],msgs:[],mode:"in",ch:null,reacts:{},unread:0,maxId:0,boot:false,drawn:null,sig:null,prives:[],pMax:null,peer:null,clubs:[],membres:[],invs:[],csig:null};
 var RX=[["like","👍","J’aime"],["heart","❤️","Cœur"],["smile","😊","Sourire"]];
 var main=$("#v"),sb=null;
 var configured=SUPABASE_URL.indexOf("REMPLACEZ")<0&&window.supabase;
@@ -93,8 +93,12 @@ function ini(n){return esc((n||"?").trim().charAt(0).toUpperCase())}
 function avh(p){var a=p&&p.photo;return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(a||"")?'<img alt="" src="'+a+'">':ini(p&&p.pseudo)}
 function shrink(file){return new Promise(function(ok,ko){var r=new FileReader();r.onerror=ko;r.onload=function(){var i=new Image();i.onerror=ko;i.onload=function(){var s=160,c=document.createElement("canvas");c.width=c.height=s;var m=Math.min(i.width,i.height),g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,s,s);g.drawImage(i,(i.width-m)/2,(i.height-m)/2,m,m,0,0,s,s);ok(c.toDataURL("image/jpeg",.8))};i.src=r.result};r.readAsDataURL(file)})}
 function mine(){return S.players.filter(function(p){return S.user&&p.id===S.user.id})[0]}
-function isClub(p){return !!p&&p.role==="club"}
-function canRecruit(){var m=mine();return isClub(m)&&!!m.verifie}
+function myClub(){return S.user&&S.clubs.filter(function(c){return c.owner_id===S.user.id})[0]}
+function canRecruit(){var c=myClub();return !!(c&&c.verifie)}
+function clubById(id){return S.clubs.filter(function(c){return c.id===id})[0]}
+function clubOf(id){var m=S.membres.filter(function(x){return x.joueur_id===id})[0];return m&&clubById(m.club_id)}
+function pendingInv(){return S.invs.filter(function(i){return S.user&&i.joueur_id===S.user.id&&i.statut==="en_attente"})}
+function invited(id){var c=myClub();return !!c&&S.invs.some(function(i){return i.club_id===c.id&&i.joueur_id===id&&i.statut==="en_attente"})}
 function seenKey(){return "bc_seenP_"+S.user.id}
 function unreadP(){if(!S.user)return 0;var s=0;try{s=+localStorage.getItem(seenKey())||0}catch(e){}return S.prives.filter(function(m){return m.to_id===S.user.id&&m.id>s}).length}
 function markSeen(){if(!S.user||!S.prives.length)return;try{localStorage.setItem(seenKey(),S.prives[S.prives.length-1].id)}catch(e){}}
@@ -102,8 +106,8 @@ function other(m){return m.from_id===S.user.id?m.to_id:m.from_id}
 function peerOf(id){return S.players.filter(function(x){return x.id===id})[0]}
 
 function nav(){
- var t=[["home","Accueil"]].concat(S.user?[["players","Joueurs"],["inbox",(isClub(mine())?"Recrutement":"Offres")],["chat","Messages"],["me","Mon profil"]]:[["auth","Connexion"]]);
- $("#nv").innerHTML=t.map(function(x){var cn=x[0]==="chat"?S.unread:x[0]==="inbox"?unreadP():0,g=cn?'<span class="bdg">'+(cn>9?"9+":cn)+'</span>':"";return '<button role="tab" data-v="'+x[0]+'" aria-selected="'+(S.view===x[0])+'">'+x[1]+g+'</button>'}).join("")
+ var t=[["home","Accueil"]].concat(S.user?[["players","Joueurs"],["inbox","Offres"],["club","Mon club"],["chat","Messages"],["me","Mon profil"]]:[["auth","Connexion"]]);
+ $("#nv").innerHTML=t.map(function(x){var cn=x[0]==="chat"?S.unread:x[0]==="inbox"?unreadP()+pendingInv().length:0,g=cn?'<span class="bdg">'+(cn>9?"9+":cn)+'</span>':"";return '<button role="tab" data-v="'+x[0]+'" aria-selected="'+(S.view===x[0])+'">'+x[1]+g+'</button>'}).join("")
  +(S.user&&"Notification" in window&&Notification.permission==="default"?'<button data-v="bell" title="Activer les notifications" aria-label="Activer les notifications">🔔</button>':"")
  +(S.user?'<button data-v="out">Déconnexion</button>':"");
  document.title=(S.unread?"("+S.unread+") ":"")+"Basket Connect"
@@ -118,7 +122,7 @@ function draw(){
  if(!configured){var why=SUPABASE_URL.indexOf("REMPLACEZ")>-1?"Ce fichier n’est pas la version configurée : l’adresse du projet est absente. Retéléchargez le dernier index.html.":"La bibliothèque Supabase n’a pas pu se charger. Vérifiez votre connexion Internet et désactivez temporairement tout bloqueur (antivirus, bloqueur de publicités, réseau d’entreprise ou d’école).";main.innerHTML='<div class="panel" style="margin-top:24px"><b>Le site ne peut pas démarrer.</b><p style="color:var(--mu)">'+why+'</p></div>';return}
  var v=S.view;
  if(v!=="home"&&!S.user)v="auth";
- if(v==="home")home();else if(v==="auth")auth();else if(v==="players")players();else if(v==="chat")chat();else if(v==="inbox")inbox();else profile()
+ if(v==="home")home();else if(v==="auth")auth();else if(v==="players")players();else if(v==="chat")chat();else if(v==="inbox")inbox();else if(v==="club")clubView();else profile()
 }
 function home(){
  main.innerHTML='<section class="hero"><h1>Une seule plateforme pour <span>tous les basketteurs.</span></h1><p>Créez votre profil de joueur, retrouvez les autres joueurs et échangez dans la discussion commune. Les clubs peuvent aussi contacter les joueurs qui cherchent une équipe.</p><button class="btn" id="go">'+(S.user?(mine()?"Voir les joueurs":"Compléter mon profil"):"Je m’inscris")+'</button></section>';
@@ -137,35 +141,33 @@ function auth(){
   if(up&&!r.data.session)toast("Compte créé : confirmez votre email puis connectez-vous")}
 }
 function players(){
- var list=S.players.filter(function(p){return !isClub(p)}).sort(function(a,b){return (a.pseudo||"").localeCompare(b.pseudo||"","fr")}),m=mine();
- main.innerHTML='<h2 style="margin:24px 0 4px">Joueurs</h2>'+(isClub(m)&&!m.verifie?'<p class="note">Votre compte club est en attente de validation : vous pourrez contacter les joueurs sans club dès qu’il sera validé.</p>':"")+'<div class="row"><input id="q" type="search" aria-label="Rechercher" placeholder="Rechercher par nom, poste ou ville…" style="max-width:420px"><select id="pf" aria-label="Poste" style="max-width:180px"><option value="">Tous les postes</option>'+POS.map(function(p){return '<option>'+p+'</option>'}).join("")+'</select><label style="display:flex;align-items:center;gap:8px;width:auto"><input id="sc" type="checkbox" style="width:auto"'+(isClub(m)?" checked":"")+'>Sans club uniquement</label></div><div class="grid" id="g"></div>';
+ var list=S.players.slice().sort(function(a,b){return (a.pseudo||"").localeCompare(b.pseudo||"","fr")}),c=myClub();
+ main.innerHTML='<h2 style="margin:24px 0 4px">Joueurs</h2>'+(c&&!c.verifie?'<p class="note">Votre club est en attente de validation : vous pourrez inviter des joueurs dès qu’il sera validé.</p>':"")+'<div class="row"><input id="q" type="search" aria-label="Rechercher" placeholder="Rechercher par nom, poste ou ville…" style="max-width:420px"><select id="pf" aria-label="Poste" style="max-width:180px"><option value="">Tous les postes</option>'+POS.map(function(p){return '<option>'+p+'</option>'}).join("")+'</select><label style="display:flex;align-items:center;gap:8px;width:auto"><input id="sc" type="checkbox" style="width:auto"'+(c?" checked":"")+'>Sans club uniquement</label></div><div class="grid" id="g"></div>';
  function d(){var q=$("#q").value.toLowerCase(),pf=$("#pf").value,sc=$("#sc").checked;
-  var r=list.filter(function(p){return (!pf||p.poste===pf)&&(!sc||p.sans_club)&&(!q||((p.pseudo||"")+" "+(p.poste||"")+" "+(p.ville||"")).toLowerCase().indexOf(q)>-1)});
-  $("#g").innerHTML=r.length?r.map(function(p,i){return '<article class="card" style="animation-delay:'+(i%8)*50+'ms"><div class="av">'+avh(p)+'</div><h3>'+esc(p.pseudo)+'</h3><small>'+esc(p.ville||"")+'</small><div style="margin-top:8px"><span class="pill">'+esc(p.poste||"")+'</span>'+(p.taille?'<span class="pill">'+esc(p.taille)+' cm</span>':"")+'<span class="pill">'+esc(p.niveau||"")+'</span>'+(p.sans_club?'<span class="pill" style="background:rgba(255,122,26,.22);color:var(--tx)">Cherche un club</span>':"")+'</div>'+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+(canRecruit()&&p.sans_club?'<button type="button" class="btn" style="margin-top:12px;padding:8px 16px" data-c="'+esc(p.id)+'">Contacter</button>':"")+'</article>'}).join(""):'<div class="panel" style="grid-column:1/-1;color:var(--mu)">Aucun joueur pour le moment.</div>'}
- $("#q").oninput=d;$("#pf").onchange=d;$("#sc").onchange=d;d();
- $("#g").onclick=function(e){var b=e.target.closest("[data-c]");if(b){S.peer=b.dataset.c;setView("inbox",true)}}
+  var r=list.filter(function(p){return (!pf||p.poste===pf)&&(!sc||(p.sans_club&&!clubOf(p.id)))&&(!q||((p.pseudo||"")+" "+(p.poste||"")+" "+(p.ville||"")).toLowerCase().indexOf(q)>-1)});
+  $("#g").innerHTML=r.length?r.map(function(p,i){var k=clubOf(p.id),iv=invited(p.id),act=canRecruit()&&p.sans_club&&!k&&p.id!==S.user.id?'<div class="row" style="margin-top:12px"><button type="button" class="btn" style="padding:8px 16px" data-iv="'+esc(p.id)+'"'+(iv?" disabled":"")+'>'+(iv?"Invité":"Inviter")+'</button><button type="button" class="btn g" style="padding:8px 16px" data-c="'+esc(p.id)+'">Message</button></div>':"";
+   return '<article class="card" style="animation-delay:'+(i%8)*50+'ms"><div class="av">'+avh(p)+'</div><h3>'+esc(p.pseudo)+'</h3><small>'+esc(p.ville||"")+'</small><div style="margin-top:8px"><span class="pill">'+esc(p.poste||"")+'</span>'+(p.taille?'<span class="pill">'+esc(p.taille)+' cm</span>':"")+'<span class="pill">'+esc(p.niveau||"")+'</span>'+(k?'<span class="pill" style="color:var(--tx)">'+esc(k.nom)+'</span>':p.sans_club?'<span class="pill" style="background:rgba(255,122,26,.22);color:var(--tx)">Cherche un club</span>':"")+'</div>'+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+act+'</article>'}).join(""):'<div class="panel" style="grid-column:1/-1;color:var(--mu)">Aucun joueur pour le moment.</div>'}
+ $("#q").oninput=d;$("#pf").onchange=d;$("#sc").onchange=d;d()
 }
 function profile(){
  var p=mine()||{};
  main.innerHTML='<h2 style="margin:24px 0 12px">'+(p.pseudo?"Mon profil":"Inscription")+'</h2><form class="panel form" id="f">'+
  '<div class="full row"><div class="av" id="pv" style="width:76px;height:76px;margin:0;font-size:1.6rem"></div><label style="flex:1;min-width:180px">Photo de profil<input id="ph" type="file" accept="image/*"></label>'+(p.photo?'<button type="button" class="btn g" id="rp">Retirer la photo</button>':"")+'</div>'+
- '<label>Je suis<select id="rl"><option value="joueur"'+(p.role==="club"?"":" selected")+'>Un joueur</option><option value="club"'+(p.role==="club"?" selected":"")+'>Un club</option></select></label>'+
- '<label>Pseudo ou nom du club<input id="ps" required maxlength="30" value="'+esc(p.pseudo||"")+'"></label>'+
+ '<label>Pseudo<input id="ps" required maxlength="30" value="'+esc(p.pseudo||"")+'"></label>'+
  '<label class="jo">Poste<select id="po">'+POS.map(function(x){return '<option'+(p.poste===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label>'+
  '<label class="jo">Taille (cm)<input id="ta" type="number" min="100" max="240" value="'+esc(p.taille||"")+'"></label>'+
  '<label>Niveau<select id="ni">'+LVL.map(function(x){return '<option'+(p.niveau===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label>'+
  '<label class="full">Ville<input id="vi" maxlength="60" value="'+esc(p.ville||"")+'"></label>'+
  '<label class="full">Présentation<textarea id="bi" rows="3" maxlength="240">'+esc(p.bio||"")+'</textarea></label>'+
- '<label class="full jo" style="display:flex;align-items:center;gap:10px"><input id="sc" type="checkbox" style="width:auto"'+(p.sans_club?" checked":"")+'>Je recherche un club (les clubs vérifiés pourront me contacter)</label>'+
- '<p class="note full cl" style="margin:0">'+(p.verifie?'✔ Club vérifié : vous pouvez contacter les joueurs qui recherchent un club.':'Votre compte club doit être validé par l’administrateur avant de pouvoir contacter des joueurs.')+'</p>'+
+ '<label class="full jo" style="display:flex;align-items:center;gap:10px"><input id="sc" type="checkbox" style="width:auto"'+(p.sans_club?" checked":"")+'>Je recherche un club (visible des clubs, qui pourront m’inviter)</label>'+
  '<label class="full" style="display:flex;align-items:center;gap:10px"><input id="vs" type="checkbox" style="width:auto"'+(p.visible===false?"":" checked")+'>Afficher mon profil aux autres joueurs</label>'+
  '<div class="full row"><button class="btn" type="submit">Enregistrer</button>'+(p.pseudo?'<button type="button" class="btn g" id="dl">Supprimer mon profil</button>':"")+'</div></form>'+
  '<p class="note">Ne publiez ni téléphone, ni adresse. Les joueurs mineurs doivent s’inscrire avec l’accord d’un responsable.</p>';
- function tg(){var c=$("#rl").value==="club";document.querySelectorAll(".jo").forEach(function(el){el.hidden=c});document.querySelector(".cl").hidden=!c}$("#rl").onchange=tg;tg();var photo=p.photo||null;function pv(){$("#pv").innerHTML=avh({pseudo:$("#ps").value,photo:photo})}pv();$("#ps").oninput=pv;
+ var photo=p.photo||null;function pv(){$("#pv").innerHTML=avh({pseudo:$("#ps").value,photo:photo})}pv();$("#ps").oninput=pv;
  $("#ph").onchange=function(e){var f=e.target.files[0];if(!f)return;shrink(f).then(function(d){photo=d;pv()}).catch(function(){toast("Image illisible")})};
  var rp=$("#rp");if(rp)rp.onclick=function(){photo=null;pv();rp.remove()};
  $("#f").onsubmit=async function(e){e.preventDefault();var b=e.submitter;b.disabled=true;
-  var r=await sb.from("profiles").upsert({id:S.user.id,pseudo:$("#ps").value.trim().slice(0,30),role:$("#rl").value,sans_club:$("#rl").value!=="club"&&$("#sc").checked,poste:$("#rl").value==="club"?null:$("#po").value,taille:$("#rl").value==="club"?null:(+$("#ta").value||null),niveau:$("#ni").value,ville:$("#vi").value.trim().slice(0,60),bio:$("#bi").value.trim().slice(0,240),visible:$("#vs").checked,photo:photo});
+  var r=await sb.from("profiles").upsert({id:S.user.id,pseudo:$("#ps").value.trim().slice(0,30),sans_club:$("#sc").checked,poste:$("#po").value,taille:+$("#ta").value||null,niveau:$("#ni").value,ville:$("#vi").value.trim().slice(0,60),bio:$("#bi").value.trim().slice(0,240),visible:$("#vs").checked,photo:photo});
   if(r.error){toast("Enregistrement impossible");b.disabled=false;return}
   await loadPlayers();toast("Profil enregistré");setView("players")};
  var dl=$("#dl");if(dl)dl.onclick=async function(){if(!confirm("Supprimer votre profil et vos messages ?"))return;var r=await sb.from("profiles").delete().eq("id",S.user.id);if(r.error){toast("Suppression impossible");return}await loadPlayers();await loadMsgs();setView("me")}
@@ -213,7 +215,8 @@ function fillInbox(){var box=$("#ib");if(!box)return;
   box.scrollTop=box.scrollHeight;return}
  var c={};S.prives.forEach(function(m){c[other(m)]=m});
  var ids=Object.keys(c).sort(function(a,b){return c[b].id-c[a].id});
- box.innerHTML=ids.length?ids.map(function(id){var m=c[id],p=peerOf(id);return '<button type="button" class="card conv" data-p="'+esc(id)+'"><div class="av">'+avh(p)+'</div><h3>'+esc(p?p.pseudo:"Utilisateur")+'</h3>'+(isClub(p)&&p.verifie?'<span class="pill">✔ Club vérifié</span>':"")+'<p>'+(m.from_id===S.user.id?"Vous : ":"")+esc(m.text.slice(0,80))+'</p></button>'}).join(""):'<div class="panel" style="grid-column:1/-1;color:var(--mu)">'+(isClub(mine())?"Aucune conversation. Dans « Joueurs », contactez un joueur qui cherche un club.":"Aucune offre pour le moment. Cochez « Je recherche un club » dans votre profil pour être visible des clubs.")+'</div>'}
+ box.innerHTML=ids.length?ids.map(function(id){var m=c[id],p=peerOf(id);return '<button type="button" class="card conv" data-p="'+esc(id)+'"><div class="av">'+avh(p)+'</div><h3>'+esc(p?p.pseudo:"Utilisateur")+'</h3><p>'+(m.from_id===S.user.id?"Vous : ":"")+esc(m.text.slice(0,80))+'</p></button>'}).join(""):'<div class="panel" style="grid-column:1/-1;color:var(--mu)">'+(myClub()?"Aucun message. Dans « Joueurs », invitez ou contactez un joueur qui cherche un club.":"Aucun message pour le moment. Cochez « Je recherche un club » dans votre profil pour être visible des clubs.")+'</div>'}
+function invHTML(){var l=pendingInv();return l.length?'<h3 style="margin:18px 0 0">Invitations</h3><div class="grid">'+l.map(function(i){var c=clubById(i.club_id)||{};return '<article class="card"><h3>'+esc(c.nom||"Club")+'</h3><small>'+esc(c.ville||"")+'</small>'+(c.verifie?'<div style="margin-top:8px"><span class="pill">✔ Club vérifié</span></div>':"")+'<p>'+esc(i.message||"")+'</p><div class="row" style="margin-top:12px"><button type="button" class="btn" style="padding:8px 16px" data-ac="'+i.id+'">Accepter</button><button type="button" class="btn g" style="padding:8px 16px" data-rf="'+i.id+'">Refuser</button></div></article>'}).join("")+'</div><h3 style="margin:22px 0 0">Messages</h3>':""}
 function inbox(){
  markSeen();nav();
  if(S.peer){var pe=peerOf(S.peer);
@@ -223,9 +226,39 @@ function inbox(){
    var r=await sb.from("prives").insert({to_id:S.peer,text:t.slice(0,1000)});b.disabled=false;
    if(r.error){toast("Message non envoyé : vous ne pouvez pas écrire à ce joueur");return}
    $("#dt").value="";loadPrives()}}
- else{main.innerHTML='<h2 style="margin:24px 0 4px">'+(isClub(mine())?"Recrutement":"Offres de clubs")+'</h2><div class="grid" id="ib"></div>';
-  $("#ib").onclick=function(e){var b=e.target.closest("[data-p]");if(b){S.peer=b.dataset.p;inbox()}}}
+ else main.innerHTML='<h2 style="margin:24px 0 4px">Offres</h2><div id="iv">'+invHTML()+'</div><div class="grid" id="ib"></div>';
  fillInbox()}
+function roster(k,own){var l=S.membres.filter(function(x){return x.club_id===k.id});return '<h3 style="margin:22px 0 8px">Joueurs du club ('+l.length+')</h3>'+(l.length?'<div class="grid">'+l.map(function(x){var p=peerOf(x.joueur_id);return '<article class="card"><div class="av">'+avh(p)+'</div><h3>'+esc(p?p.pseudo:"Joueur")+'</h3><small>'+esc(p&&p.poste||"")+'</small>'+(own?'<div style="margin-top:10px"><button type="button" class="btn g" style="padding:6px 14px" data-rm="'+esc(x.joueur_id)+'">Retirer</button></div>':"")+'</article>'}).join("")+'</div>':'<p style="color:var(--mu)">Aucun joueur pour le moment.</p>')}
+function sentInv(c){var l=S.invs.filter(function(i){return i.club_id===c.id}),L={en_attente:"En attente",acceptee:"Acceptée",refusee:"Refusée",annulee:"Annulée"};
+ return '<h3 style="margin:22px 0 8px">Invitations envoyées</h3>'+(l.length?'<div class="panel">'+l.map(function(i){var p=peerOf(i.joueur_id);return '<div class="row" style="justify-content:space-between;padding:6px 0"><span>'+esc(p?p.pseudo:"Joueur")+' <span class="pill">'+(L[i.statut]||esc(i.statut))+'</span></span>'+(i.statut==="en_attente"?'<button type="button" class="btn g" style="padding:6px 14px" data-cx="'+i.id+'">Annuler</button>':"")+'</div>'}).join("")+'</div>':'<p style="color:var(--mu)">Aucune invitation. Dans « Joueurs », invitez ceux qui cherchent un club.</p>')}
+function clubView(){
+ var c=myClub(),m=S.membres.filter(function(x){return x.joueur_id===S.user.id})[0],mc=m&&clubById(m.club_id),h='<h2 style="margin:24px 0 12px">Mon club</h2>';
+ if(mc&&!c){main.innerHTML=h+'<div class="panel"><b>'+esc(mc.nom)+'</b> <small style="color:var(--mu)">'+esc(mc.ville||"")+'</small><p style="color:var(--mu)">Vous êtes membre de ce club.</p><button type="button" class="btn g" data-lv="1">Quitter le club</button></div>'+roster(mc,false);return}
+ main.innerHTML=h+'<form class="panel form" id="cf"><label class="full">Nom du club<input id="cn" required minlength="2" maxlength="60" value="'+esc(c?c.nom:"")+'"></label><label>Ville<input id="cv" maxlength="60" value="'+esc(c?c.ville||"":"")+'"></label><label>Niveau<select id="cl">'+LVL.map(function(x){return '<option'+(c&&c.niveau===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label><label class="full">Présentation<textarea id="cd" rows="3" maxlength="240">'+esc(c?c.description||"":"")+'</textarea></label><div class="full row"><button class="btn" type="submit">'+(c?"Enregistrer":"Créer mon club")+'</button>'+(c?'<button type="button" class="btn g" data-dc="'+c.id+'">Supprimer le club</button>':"")+'</div></form>'+
+ (c?'<p class="note">'+(c.verifie?"✔ Club vérifié : vous pouvez inviter les joueurs qui cherchent un club.":"Club en attente de validation par l’administrateur : vous pourrez inviter des joueurs dès qu’il sera validé.")+'</p>'+roster(c,true)+sentInv(c):'<p class="note">Créez votre club pour inviter des joueurs. Il doit d’abord être validé par l’administrateur.</p>');
+ $("#cf").onsubmit=async function(e){e.preventDefault();var b=e.submitter;b.disabled=true;var d={nom:$("#cn").value.trim().slice(0,60),ville:$("#cv").value.trim().slice(0,60),niveau:$("#cl").value,description:$("#cd").value.trim().slice(0,240)};
+  var r=c?await sb.from("clubs").update(d).eq("id",c.id):await sb.from("clubs").insert(d);
+  if(r.error){toast("Enregistrement impossible");b.disabled=false;return}
+  toast(c?"Club enregistré":"Club créé");S.csig=null;await loadClubs()}}
+async function loadClubs(){
+ if(!S.user)return;
+ var r=await Promise.all([sb.from("clubs").select("*"),sb.from("membres").select("joueur_id,club_id"),sb.from("invitations").select("id,club_id,joueur_id,message,statut,created_at").order("id",{ascending:false}).limit(200)]);
+ if(r[0].error||r[1].error||r[2].error||!S.user)return;
+ var sig=JSON.stringify([r[0].data,r[1].data,r[2].data]);if(sig===S.csig)return;
+ var first=S.csig==null,before=pendingInv().length;S.csig=sig;S.clubs=r[0].data||[];S.membres=r[1].data||[];S.invs=r[2].data||[];
+ if(!first&&S.view!=="inbox"&&pendingInv().length>before)toast("Nouvelle invitation de club");
+ nav();var ae=document.activeElement,ty=!!ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&main.contains(ae);
+ if(ty)return;
+ if(S.view==="club")clubView();else if(S.view==="players")players();else if(S.view==="inbox"&&!S.peer){var iv=$("#iv");if(iv)iv.innerHTML=invHTML()}}
+main.onclick=async function(e){var b=e.target.closest("button");if(!b)return;var d=b.dataset,r;
+ if(d.p){S.peer=d.p;inbox();return}
+ if(d.c){S.peer=d.c;setView("inbox",true);return}
+ if(d.iv){var c=myClub();b.disabled=true;r=await sb.from("invitations").insert({club_id:c.id,joueur_id:d.iv,message:("Le club "+c.nom+" vous invite à le rejoindre.").slice(0,300)});toast(r.error?"Invitation impossible":"Invitation envoyée");await loadClubs();return}
+ if(d.ac||d.rf){var ok=!!d.ac;b.disabled=true;r=await sb.rpc("repondre_invitation",{inv:+(d.ac||d.rf),ok:ok});if(r.error){toast("Action impossible");b.disabled=false;return}toast(ok?"Vous avez rejoint le club":"Invitation refusée");await loadClubs();await loadPlayers();return}
+ if(d.cx){r=await sb.from("invitations").delete().eq("id",+d.cx);if(!r.error)await loadClubs();return}
+ if(d.rm){if(!confirm("Retirer ce joueur du club ?"))return;r=await sb.from("membres").delete().eq("joueur_id",d.rm);if(r.error)toast("Action impossible");else await loadClubs();return}
+ if(d.lv){if(!confirm("Quitter ce club ?"))return;r=await sb.from("membres").delete().eq("joueur_id",S.user.id);if(r.error)toast("Action impossible");else await loadClubs();return}
+ if(d.dc){if(!confirm("Supprimer votre club ?"))return;r=await sb.from("clubs").delete().eq("id",+d.dc);if(r.error)toast("Suppression impossible");else await loadClubs()}};
 async function loadPrives(){
  if(!S.user)return;
  var r=await sb.from("prives").select("id,from_id,to_id,text,created_at").order("id",{ascending:false}).limit(300);
@@ -249,15 +282,15 @@ async function pollNew(){
  finally{S.busy=false}}
 function subscribe(){
  sb.removeAllChannels();
- S.ch=sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},pollNew).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},loadReacts).on("postgres_changes",{event:"INSERT",schema:"public",table:"prives"},loadPrives).on("postgres_changes",{event:"*",schema:"public",table:"profiles"},loadPlayers).subscribe()
+ S.ch=sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},pollNew).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},loadReacts).on("postgres_changes",{event:"INSERT",schema:"public",table:"prives"},loadPrives).on("postgres_changes",{event:"*",schema:"public",table:"clubs"},loadClubs).on("postgres_changes",{event:"*",schema:"public",table:"membres"},loadClubs).on("postgres_changes",{event:"*",schema:"public",table:"invitations"},loadClubs).on("postgres_changes",{event:"*",schema:"public",table:"profiles"},loadPlayers).subscribe()
 }
 async function onUser(u){
  S.user=u;
- if(u){await loadPlayers();await loadMsgs();await loadPrives();subscribe();
-  if(!S.poll){S.poll=setInterval(function(){pollNew();loadPrives();if(S.user&&S.view==="chat"&&!document.hidden)loadReacts()},5000);
-   document.addEventListener("visibilitychange",function(){if(S.user&&!document.hidden){if(S.view==="chat"){S.unread=0;nav()}pollNew();loadPrives();loadPlayers()}})}
+ if(u){await loadClubs();await loadPlayers();await loadMsgs();await loadPrives();subscribe();
+  if(!S.poll){S.poll=setInterval(function(){pollNew();loadPrives();S.t=(S.t||0)+1;if(S.t%3===0)loadClubs();if(S.user&&S.view==="chat"&&!document.hidden)loadReacts()},5000);
+   document.addEventListener("visibilitychange",function(){if(S.user&&!document.hidden){if(S.view==="chat"){S.unread=0;nav()}pollNew();loadPrives();loadClubs();loadPlayers()}})}
   if(S.view==="auth")S.view=mine()?"players":"me"}
- else{sb.removeAllChannels();S.players=[];S.msgs=[];S.reacts={};S.prives=[];S.pMax=null;S.peer=null;S.unread=0;S.maxId=0;S.boot=false;S.view="home"}
+ else{sb.removeAllChannels();S.players=[];S.msgs=[];S.reacts={};S.prives=[];S.pMax=null;S.peer=null;S.clubs=[];S.membres=[];S.invs=[];S.csig=null;S.unread=0;S.maxId=0;S.boot=false;S.view="home"}
  draw()
 }
 draw();
