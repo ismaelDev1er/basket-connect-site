@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basket Connect — Le basketball burkinabè se retrouve ici</title>
+<meta name="description" content="Joueurs, clubs et recruteurs de basketball au Burkina Faso, dans un seul espace.">
+<meta name="theme-color" content="#15171c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="logo">Basket<b>Connect</b></div>
+  <nav>
+    <a id="btn-profile" class="btn hidden" href="profile.html" style="display:inline-flex;align-items:center;text-decoration:none">Mon profil</a>
+    <span id="who" class="meta hidden"></span>
+    <button class="btn" id="btn-login">Se connecter</button>
+    <button class="btn primary" id="btn-signup">Créer un compte</button>
+    <button class="btn hidden" id="btn-logout">Se déconnecter</button>
+  </nav>
+</header>
+<main>
+  <div class="hero">
+    <h1>Montre ton jeu. Trouve ton club.</h1>
+    <p>Basket Connect réunit les joueurs, les clubs et les recruteurs de basketball du Burkina Faso. Crée ton profil sportif et choisis ce que les autres peuvent voir.</p>
+    <button class="btn primary" id="cta-signup">Créer mon profil joueur</button>
+    <a class="btn" href="#annuaire" style="display:inline-flex;align-items:center;text-decoration:none">Voir les joueurs</a>
+  </div>
+  <section id="annuaire">
+    <h2>Joueurs</h2>
+    <div class="filters" role="search">
+      <label class="sr" for="f-q">Nom</label><input id="f-q" placeholder="Rechercher un nom">
+      <label class="sr" for="f-city">Ville</label><input id="f-city" placeholder="Ville">
+      <label class="sr" for="f-pos">Poste</label>
+      <select id="f-pos"><option value="">Tous les postes</option><option>Meneur</option><option>Arrière</option><option>Ailier</option><option>Ailier fort</option><option>Pivot</option></select>
+      <label class="sr" for="f-level">Niveau</label>
+      <select id="f-level"><option value="">Tous les niveaux</option><option>Débutant</option><option>Amateur</option><option>Confirmé</option><option>Professionnel</option></select>
+    </div>
+    <div id="players" class="grid" aria-live="polite"></div>
+    <p id="status" class="msg"></p>
+  </section>
+</main>
+<footer>Basket Connect — Version de test. Les profils privés ne sont jamais affichés.</footer>
+
+<dialog id="dlg">
+  <form id="auth-form">
+    <h2 id="dlg-title">Se connecter</h2>
+    <label id="l-name" class="hidden">Nom public<input id="a-name" maxlength="40" autocomplete="nickname"></label>
+    <label id="l-type" class="hidden">Je suis
+      <select id="a-type"><option value="player">Joueur</option><option value="club">Club</option><option value="recruiter">Recruteur</option><option value="supporter">Supporter</option></select></label>
+    <label>Adresse e-mail<input id="a-email" type="email" required autocomplete="email"></label>
+    <label>Mot de passe (8 caractères minimum)<input id="a-pass" type="password" minlength="8" required autocomplete="current-password"></label>
+    <p id="a-msg" class="msg" role="alert"></p>
+    <div class="row"><button class="btn primary" id="a-submit" type="submit">Se connecter</button><button class="btn" type="button" id="a-cancel">Annuler</button></div>
+    <button class="btn" type="button" id="a-reset">Mot de passe oublié</button>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
