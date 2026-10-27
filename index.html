@@ -168,7 +168,7 @@ function profile(){
  var rp=$("#rp");if(rp)rp.onclick=function(){photo=null;pv();rp.remove()};
  $("#f").onsubmit=async function(e){e.preventDefault();var b=e.submitter;b.disabled=true;
   var r=await sb.from("profiles").upsert({id:S.user.id,pseudo:$("#ps").value.trim().slice(0,30),sans_club:$("#sc").checked,poste:$("#po").value,taille:+$("#ta").value||null,niveau:$("#ni").value,ville:$("#vi").value.trim().slice(0,60),bio:$("#bi").value.trim().slice(0,240),visible:$("#vs").checked,photo:photo});
-  if(r.error){toast("Enregistrement impossible");b.disabled=false;return}
+  if(r.error){toast("Enregistrement impossible : "+r.error.message);b.disabled=false;return}
   await loadPlayers();toast("Profil enregistré");setView("players")};
  var dl=$("#dl");if(dl)dl.onclick=async function(){if(!confirm("Supprimer votre profil et vos messages ?"))return;var r=await sb.from("profiles").delete().eq("id",S.user.id);if(r.error){toast("Suppression impossible");return}await loadPlayers();await loadMsgs();setView("me")}
 }
