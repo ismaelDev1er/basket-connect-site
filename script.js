@@ -1024,38 +1024,51 @@ const loginButton = document.getElementById("loginButton");
 const footerLogin = document.getElementById("footerLogin");
 const authModal = document.getElementById("authModal");
 const closeAuth = document.getElementById("closeAuth");
-const loginForm = document.getElementById("loginForm");
-const loginEmail = document.getElementById("loginEmail");
-const loginPassword = document.getElementById("loginPassword");
-const loginError = document.getElementById("loginError");
-const sessionBox = document.getElementById("sessionBox");
+const authError = document.getElementById("authError");
+const authInfo = document.getElementById("authInfo");
 const sessionEmail = document.getElementById("sessionEmail");
+const adminLink = document.getElementById("adminLink");
 const logoutButton = document.getElementById("logoutButton");
+const loginForm = document.getElementById("loginForm");
+const signupForm = document.getElementById("signupForm");
+const forgotForm = document.getElementById("forgotForm");
+
+const authViews = {
+    login: document.getElementById("viewLogin"),
+    signup: document.getElementById("viewSignup"),
+    forgot: document.getElementById("viewForgot"),
+    session: document.getElementById("viewSession")
+};
 
 
-function messageConnexion(err) {
+function messageAuth(err) {
 
-    const text = (err && err.message) || "";
+    const t = (err && err.message) || "";
 
-    if (text.includes("Invalid login credentials"))
+    if (t.includes("Invalid login credentials"))
         return "Email ou mot de passe incorrect.";
+    if (t.includes("Email not confirmed"))
+        return "Email non confirmé : ouvrez le lien reçu par email.";
+    if (t.includes("User already registered"))
+        return "Un compte existe déjà avec cet email.";
+    if (t.includes("Password should be at least"))
+        return "Le mot de passe doit contenir au moins 8 caractères.";
+    if (t.toLowerCase().includes("rate limit"))
+        return "Trop de tentatives. Patientez quelques minutes.";
 
-    if (text.includes("Email not confirmed"))
-        return "Email non confirmé. Dans Supabase (Authentication → Users), confirmez ce compte.";
-
-    return "Connexion impossible : " + text;
+    return "Erreur : " + t;
 
 }
 
 
-async function refreshAuthView() {
+function showAuthView(name) {
 
-    const user = await currentUser();
+    Object.entries(authViews).forEach(([key, el]) => {
+        el.hidden = key !== name;
+    });
 
-    loginForm.hidden = !!user;
-    sessionBox.hidden = !user;
-    sessionEmail.textContent = user ? user.email : "";
-    loginError.textContent = "";
+    authError.textContent = "";
+    authInfo.textContent = "";
 
 }
 
@@ -1063,8 +1076,26 @@ async function refreshAuthView() {
 async function openAuth() {
 
     authModal.hidden = false;
-    await refreshAuthView();
 
+    const user = await currentUser();
+
+    if (user) {
+
+        sessionEmail.textContent = user.email;
+        adminLink.hidden = !(await isAdmin());
+        showAuthView("session");
+
+    } else {
+
+        showAuthView("login");
+
+    }
+
+}
+
+
+function setBusy(form, busy) {
+    form.querySelector("button[type='submit']").disabled = busy;
 }
 
 
@@ -1080,32 +1111,99 @@ closeAuth.addEventListener("click", () => {
 });
 
 authModal.addEventListener("click", event => {
-    if (event.target === authModal)
-        authModal.hidden = true;
+    if (event.target === authModal) authModal.hidden = true;
+});
+
+document.querySelectorAll("[data-view]").forEach(btn => {
+    btn.addEventListener("click", () => showAuthView(btn.dataset.view));
 });
 
 
 loginForm.addEventListener("submit", async event => {
 
     event.preventDefault();
-
-    const submit = loginForm.querySelector("button[type='submit']");
-    submit.disabled = true;
-    loginError.textContent = "";
+    setBusy(loginForm, true);
+    authError.textContent = "";
 
     try {
 
-        await signIn(loginEmail.value.trim(), loginPassword.value);
-        loginPassword.value = "";
-        await refreshAuthView();
+        await signIn(
+            document.getElementById("loginEmail").value.trim(),
+            document.getElementById("loginPassword").value
+        );
+        loginForm.reset();
+        await openAuth();
 
     } catch (err) {
 
-        loginError.textContent = messageConnexion(err);
+        authError.textContent = messageAuth(err);
 
     } finally {
 
-        submit.disabled = false;
+        setBusy(loginForm, false);
+
+    }
+
+});
+
+
+signupForm.addEventListener("submit", async event => {
+
+    event.preventDefault();
+    setBusy(signupForm, true);
+    authError.textContent = "";
+    authInfo.textContent = "";
+
+    try {
+
+        const session = await signUp(
+            document.getElementById("signupEmail").value.trim(),
+            document.getElementById("signupPassword").value
+        );
+
+        if (session) {
+            window.location.href = "profil.html";
+            return;
+        }
+
+        signupForm.reset();
+        authInfo.textContent =
+            "Compte créé. Ouvrez le lien de confirmation reçu par email, puis connectez-vous.";
+
+    } catch (err) {
+
+        authError.textContent = messageAuth(err);
+
+    } finally {
+
+        setBusy(signupForm, false);
+
+    }
+
+});
+
+
+forgotForm.addEventListener("submit", async event => {
+
+    event.preventDefault();
+    setBusy(forgotForm, true);
+    authError.textContent = "";
+    authInfo.textContent = "";
+
+    try {
+
+        await sendPasswordReset(document.getElementById("forgotEmail").value.trim());
+        forgotForm.reset();
+        authInfo.textContent =
+            "Si un compte existe pour cet email, un lien de réinitialisation vient d'être envoyé.";
+
+    } catch (err) {
+
+        authError.textContent = messageAuth(err);
+
+    } finally {
+
+        setBusy(forgotForm, false);
 
     }
 
@@ -1114,7 +1212,13 @@ loginForm.addEventListener("submit", async event => {
 
 logoutButton.addEventListener("click", async () => {
 
-    await signOut();
-    await refreshAuthView();
+    try {
+        await signOut();
+    } catch (err) {
+        authError.textContent = messageAuth(err);
+        return;
+    }
+
+    showAuthView("login");
 
 });

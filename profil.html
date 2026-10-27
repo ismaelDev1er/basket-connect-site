@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon profil joueur — BasketBF</title>
+    <meta name="description" content="Créez et gérez votre fiche joueur sur BasketBF.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="page-body">
+
+<header class="page-header">
+    <a href="index.html" class="logo">
+        <span class="logo-icon"><i class="fa-solid fa-basketball"></i></span>
+        <span><strong>Basket</strong><b>BF</b></span>
+    </a>
+    <span class="page-title">Mon profil joueur</span>
+    <div class="page-header-actions">
+        <a href="index.html" class="btn btn-outline-dark">Retour au site</a>
+        <button type="button" class="btn btn-outline-dark" id="logoutBtn" hidden>Se déconnecter</button>
+    </div>
+</header>
+
+<main class="page-main">
+
+    <!-- Pas de session -->
+    <section id="gate" class="card admin-gate" hidden>
+        <h2>Connexion requise</h2>
+        <p>Connectez-vous ou créez votre compte depuis la page d'accueil pour gérer votre fiche.</p>
+        <a href="index.html" class="btn btn-primary">Aller à la connexion</a>
+    </section>
+
+    <!-- Nouveau mot de passe (lien reçu par email) -->
+    <section id="recoverySection" class="card" hidden>
+        <h2>Nouveau mot de passe</h2>
+        <p class="muted">Choisissez un nouveau mot de passe pour votre compte.</p>
+        <form id="recoveryForm" class="form-grid" style="margin-top:16px">
+            <label>Nouveau mot de passe
+                <input type="password" id="newPassword" minlength="8" required autocomplete="new-password">
+            </label>
+            <label>Confirmer le mot de passe
+                <input type="password" id="newPassword2" minlength="8" required autocomplete="new-password">
+            </label>
+            <div class="form-actions" style="grid-column:1/-1">
+                <button type="submit" class="btn btn-primary">Enregistrer le mot de passe</button>
+            </div>
+        </form>
+        <p id="recoveryMsg" class="msg"></p>
+    </section>
+
+    <!-- Profil -->
+    <section id="profileSection" hidden>
+
+        <div class="card">
+            <h2>Ma fiche</h2>
+            <div id="statusBox"></div>
+        </div>
+
+        <form id="profileForm" class="card">
+            <h3 id="formTitle">Mes informations</h3>
+
+            <div class="form-grid">
+                <label>Prénom
+                    <input type="text" id="pfFirst" required maxlength="60">
+                </label>
+                <label>Nom
+                    <input type="text" id="pfLast" required maxlength="60">
+                </label>
+                <label>Date de naissance
+                    <input type="date" id="pfBirth" required>
+                </label>
+                <label>Genre
+                    <select id="pfGender" required>
+                        <option value="">Choisir</option>
+                        <option value="homme">Homme</option>
+                        <option value="femme">Femme</option>
+                    </select>
+                </label>
+                <label>Taille (cm)
+                    <input type="number" id="pfHeight" min="150" max="250" placeholder="ex. 187">
+                </label>
+                <label>Poste
+                    <select id="pfPosition">
+                        <option value="">Non précisé</option>
+                        <option value="Meneur">Meneur</option>
+                        <option value="Arrière">Arrière</option>
+                        <option value="Ailier">Ailier</option>
+                        <option value="Pivot">Pivot</option>
+                    </select>
+                </label>
+                <label>Ville
+                    <input type="text" id="pfCity" maxlength="80">
+                </label>
+            </div>
+
+            <p class="muted" id="ageNote" style="margin-top:14px"></p>
+
+            <label class="check" id="consentRow" style="margin-top:14px">
+                <input type="checkbox" id="pfConsent">
+                J'accepte que mon prénom et mon nom soient publiés sur BasketBF une fois ma fiche validée.
+            </label>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="saveBtn">Enregistrer ma fiche</button>
+            </div>
+            <p id="profileMsg" class="msg"></p>
+        </form>
+
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="db.js"></script>
+<script src="profil.js"></script>
+
+</body>
+</html>

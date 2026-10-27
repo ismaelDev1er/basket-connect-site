@@ -1,27 +1,31 @@
 # BasketBF
 
 Plateforme nationale du basketball burkinabè : clubs, joueurs, matchs et classement.
-Le site lit ses données dans Supabase. Il ne contient aucune donnée fictive.
+Le site lit et écrit ses données dans Supabase. Il ne contient aucune donnée fictive.
 
 ## Contenu
 
 ```
-index.html          page du site
+index.html          site public, connexion, inscription, mot de passe oublié
+profil.html         fiche du joueur connecté (+ nouveau mot de passe)
+admin.html          espace administrateur
 style.css           styles
-script.js           affichage et filtres
-db.js               chargement des données depuis Supabase
+script.js           affichage du site public et fenêtre de connexion
+profil.js           logique de la page profil
+admin.js            logique de l'espace administrateur
+db.js               accès à Supabase (lecture publique, auth, profil, admin)
 config.js           URL et clé publique Supabase (à renseigner)
 migrations/
-  0001_schema.sql        tables
-  0002_securite_vues.sql sécurité (RLS), règles, vues publiques
-  checks.sql             contrôles à lancer après l'installation
+  0001_schema.sql         tables
+  0002_securite_vues.sql  sécurité (RLS), règles, vues publiques
+  checks.sql              contrôles à lancer après l'installation
 ```
 
-## 1. Créer la base
+## 1. Créer la base de données
 
-1. Créez un projet Supabase **dédié** à BasketBF.
+1. Créez un projet Supabase dédié à BasketBF.
 2. Ouvrez **SQL Editor** et exécutez, dans l'ordre, `migrations/0001_schema.sql`, puis `migrations/0002_securite_vues.sql`. Chaque fichier se lance dans une nouvelle requête.
-3. Exécutez `migrations/checks.sql` et vérifiez les résultats attendus en commentaire.
+3. Exécutez `migrations/checks.sql`. Sur une base neuve, tous les résultats doivent être à 0 et les deux erreurs « permission denied » sont attendues.
 
 Les migrations ne se rejouent pas. En cas d'erreur, supprimez le projet et recommencez.
 
@@ -36,46 +40,50 @@ const SUPABASE_ANON_KEY = "eyJ...";
 
 Ne mettez jamais la clé `service_role` dans le site.
 
-## 3. Créer le premier administrateur
+## 3. Configurer l'authentification
 
-1. Dans **Authentication → Users**, cliquez sur **Add user** et créez le compte avec son email et un mot de passe.
-2. Dans **SQL Editor**, rattachez-le aux administrateurs :
+Dans **Authentication → URL Configuration** :
+
+- **Site URL** : l'adresse de votre site, par exemple `https://VOTRE-COMPTE.github.io/basketbf/`.
+- **Redirect URLs** : ajoutez `https://VOTRE-COMPTE.github.io/basketbf/profil.html`.
+
+Ces adresses servent aux liens envoyés par email (confirmation d'inscription, réinitialisation du mot de passe). Sans elles, les liens ne fonctionnent pas.
+
+Par défaut, Supabase demande la confirmation de l'adresse email à l'inscription. Gardez ce réglage pour la production.
+
+## 4. Créer le premier administrateur
+
+1. Dans **Authentication → Users**, cliquez sur **Add user** → **Create new user**. Saisissez l'email et un mot de passe, et cochez **Auto Confirm User**.
+2. Dans **SQL Editor**, rattachez ce compte aux administrateurs :
 
 ```sql
 insert into public.admin_users (user_id)
 select id from auth.users where email = 'votre@email.com';
 ```
 
-## 4. Ajouter les données réelles
+3. Connectez-vous sur le site (bouton **Connexion**), puis ouvrez **Administration**.
 
-Les données s'ajoutent sans passer par le code, dans **Table Editor** (en tant que propriétaire du projet), ou en SQL. Exemples :
+Pour ajouter un autre administrateur, il suffit de répéter l'étape 2 avec son email.
 
-```sql
--- Lieu
-insert into public.venues (name, city) values ('Palais des Sports', 'Ouagadougou');
+## 5. Fonctionnement pour les utilisateurs
 
--- Club (genders : 'homme' et/ou 'femme' ; categories : Minime, Junior, Espoir, Senior)
-insert into public.clubs (name, short_name, city, genders, categories)
-values ('Nom officiel', 'SIGLE', 'Ville', '{homme,femme}', '{Junior,Senior}');
+**Joueur**
+1. Crée un compte depuis **Connexion → Créer un compte**, puis confirme son email.
+2. Remplit sa fiche sur `profil.html` : identité, taille, poste, ville, consentement à la publication.
+3. Sa fiche reste en attente jusqu'à validation par l'administration. Il peut voir son statut et son club.
 
--- Compétition (publiée = visible sur le site)
-insert into public.competitions (name, season, is_published)
-values ('Championnat National 2026', 2026, true);
+La date de naissance et le club ne peuvent être modifiés que par l'administration. Le joueur ne peut ni se publier, ni se rattacher à un club.
 
--- Match à venir
-insert into public.matches (competition_id, home_club_id, away_club_id, venue_id, scheduled_at, status)
-select c.id, h.id, a.id, v.id, '2026-11-07 18:00+00', 'scheduled'
-from public.competitions c, public.clubs h, public.clubs a, public.venues v
-where c.name = 'Championnat National 2026'
-  and h.name = 'Club A' and a.name = 'Club B'
-  and v.name = 'Palais des Sports';
-```
+**Administrateur** (`admin.html`)
+- **Fiches joueurs** : rattacher le joueur à un club, publier ou dépublier la fiche. Les joueurs de moins de 18 ans restent masqués du public.
+- **Clubs** : créer ou supprimer un club (genres, catégories).
+- **Lieux** : ajouter ou supprimer un lieu. Renseignez la ville.
+- **Compétitions** : créer une saison, fixer les points victoire et défaite, publier. Le classement se calcule seul à partir des matchs terminés.
+- **Matchs et scores** : créer un match, passer son statut à **En direct** (avec la période, par exemple Q4) ou **Terminé**, saisir les scores. Un match terminé doit avoir deux scores différents. Chaque changement de score est tracé dans l'historique.
 
-Le classement se calcule tout seul à partir des matchs passés au statut `finished`, avec un score final non nul.
+Les horaires sont saisis en **UTC**. Le Burkina Faso étant en UTC+0, l'heure affichée est l'heure locale.
 
-Pour un match en cours, passez `status` à `live` et renseignez `current_period` (par exemple `Q4`).
-
-## 5. Mettre en ligne
+## 6. Mettre en ligne sur GitHub Pages
 
 ```bash
 git init
@@ -86,16 +94,13 @@ git remote add origin https://github.com/VOTRE-COMPTE/basketbf.git
 git push -u origin main
 ```
 
-Pour publier, allez dans **Settings → Pages**, choisissez **Deploy from a branch**, branche `main`, dossier `/ (root)`.
+Dans **Settings → Pages**, choisissez **Deploy from a branch**, branche `main`, dossier `/ (root)`. Le site est ensuite disponible à `https://VOTRE-COMPTE.github.io/basketbf/`.
 
-## Ce qui n'est pas encore en place
+## Points à vérifier avant l'ouverture au public
 
-- **Connexion et inscription** : le lien « Connexion » et le bouton « Créer mon profil » ne sont pas encore reliés à une page. Les règles de sécurité pour les joueurs sont déjà prêtes.
-- **Espace administrateur** : la saisie se fait pour l'instant dans Supabase.
-- **Compteurs** : ils affichent le nombre réel d'entrées ; tant que la base est vide, ils indiquent 0.
-
-## Avant la mise en ligne
-
-- Obtenez l'accord des joueurs avant de publier leur fiche, car leur prénom et leur nom sont visibles.
-- Les joueurs de moins de 18 ans ne sont jamais affichés publiquement.
-- Renseignez la ville de chaque lieu.
+- **Consentement** : le prénom et le nom des joueurs publiés sont visibles de tous. Le formulaire recueille l'accord, mais conservez une trace si nécessaire.
+- **Mineurs** : un joueur de moins de 18 ans n'apparaît jamais publiquement, même publié.
+- **Liens du pied de page et réseaux sociaux** : les liens vers vos pages Facebook, Instagram, etc. ont été retirés car leurs adresses ne sont pas connues. Ajoutez-les dans `index.html` si vous les avez.
+- **Sauvegardes** : activez les sauvegardes quotidiennes de Supabase selon votre formule.
+- **Email de production** : le service d'envoi par défaut de Supabase est limité en volume. Configurez un SMTP propre avant d'accueillir beaucoup de joueurs (**Project Settings → Auth → SMTP**).
+- **Statistiques individuelles** (points, rebonds, passes) : non incluses. Elles nécessiteront une table `match_player_stats`.

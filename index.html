@@ -303,7 +303,7 @@
                 </h2>
             </div>
 
-            <a href="#" class="view-all">
+            <a href="#clubs" class="view-all">
                 Voir tous les clubs
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
@@ -439,7 +439,7 @@
 
             </div>
 
-            <a href="#" class="view-all">
+            <a href="#matchs" class="view-all">
                 Calendrier complet
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
@@ -537,7 +537,7 @@
                 la possibilité de découvrir ton talent.
             </p>
 
-            <a href="#" class="btn btn-light">
+            <a href="profil.html" class="btn btn-light">
                 Créer mon profil
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
@@ -612,12 +612,8 @@
 
             <div class="feeba-buttons">
 
-                <a href="#" class="btn btn-primary">
+                <a href="#championnat" class="btn btn-primary">
                     Championnat national
-                </a>
-
-                <a href="#" class="btn btn-outline-dark">
-                    Informations FEEBA
                 </a>
 
             </div>
@@ -656,27 +652,6 @@
                 burkinabè.
             </p>
 
-
-            <div class="socials">
-
-                <a href="#">
-                    <i class="fa-brands fa-facebook-f"></i>
-                </a>
-
-                <a href="#">
-                    <i class="fa-brands fa-instagram"></i>
-                </a>
-
-                <a href="#">
-                    <i class="fa-brands fa-youtube"></i>
-                </a>
-
-                <a href="#">
-                    <i class="fa-brands fa-tiktok"></i>
-                </a>
-
-            </div>
-
         </div>
 
 
@@ -697,9 +672,8 @@
             <h4>Plateforme</h4>
 
             <a href="#recrutement">Créer un profil</a>
-            <a href="#">Créer un club</a>
             <a href="#" id="footerLogin">Connexion</a>
-            <a href="#">Administration</a>
+            <a href="admin.html">Administration</a>
 
         </div>
 
@@ -710,8 +684,7 @@
 
             <a href="#feeba">Championnat</a>
             <a href="#matchs">Calendrier</a>
-            <a href="#">Résultats</a>
-            <a href="#">Actualités</a>
+            <a href="#championnat">Résultats</a>
 
         </div>
 
@@ -748,19 +721,56 @@
             <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <h3 id="authTitle">Connexion</h3>
+        <!-- Connexion -->
+        <div id="viewLogin">
+            <h3 id="authTitle">Connexion</h3>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Adresse email" required autocomplete="email">
+                <input type="password" id="loginPassword" placeholder="Mot de passe" required autocomplete="current-password">
+                <button type="submit" class="btn btn-primary">Se connecter</button>
+            </form>
+            <p class="auth-links">
+                <button type="button" class="link-btn" data-view="forgot">Mot de passe oublié ?</button>
+                <button type="button" class="link-btn" data-view="signup">Créer un compte</button>
+            </p>
+        </div>
 
-        <form id="loginForm">
-            <input type="email" id="loginEmail" placeholder="Adresse email" required autocomplete="email">
-            <input type="password" id="loginPassword" placeholder="Mot de passe" required autocomplete="current-password">
-            <button type="submit" class="btn btn-primary">Se connecter</button>
-            <p id="loginError" class="auth-error"></p>
-        </form>
+        <!-- Inscription -->
+        <div id="viewSignup" hidden>
+            <h3>Créer mon compte</h3>
+            <form id="signupForm">
+                <input type="email" id="signupEmail" placeholder="Adresse email" required autocomplete="email">
+                <input type="password" id="signupPassword" placeholder="Mot de passe (8 caractères minimum)" required minlength="8" autocomplete="new-password">
+                <button type="submit" class="btn btn-primary">Créer mon compte</button>
+            </form>
+            <p class="auth-links">
+                <button type="button" class="link-btn" data-view="login">J'ai déjà un compte</button>
+            </p>
+        </div>
 
-        <div id="sessionBox" hidden>
+        <!-- Mot de passe oublié -->
+        <div id="viewForgot" hidden>
+            <h3>Mot de passe oublié</h3>
+            <form id="forgotForm">
+                <input type="email" id="forgotEmail" placeholder="Adresse email" required autocomplete="email">
+                <button type="submit" class="btn btn-primary">Envoyer le lien</button>
+            </form>
+            <p class="auth-links">
+                <button type="button" class="link-btn" data-view="login">Retour à la connexion</button>
+            </p>
+        </div>
+
+        <!-- Session ouverte -->
+        <div id="viewSession" hidden>
+            <h3>Mon espace</h3>
             <p>Connecté en tant que <strong id="sessionEmail"></strong></p>
+            <a href="profil.html" class="btn btn-primary">Mon profil joueur</a>
+            <a href="admin.html" class="btn btn-outline-dark" id="adminLink" hidden>Administration</a>
             <button type="button" class="btn btn-outline-dark" id="logoutButton">Se déconnecter</button>
         </div>
+
+        <p id="authError" class="auth-error"></p>
+        <p id="authInfo" class="auth-info"></p>
 
     </div>
 </div>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — BasketBF</title>
+    <meta name="robots" content="noindex">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="page-body">
+
+<header class="page-header">
+    <a href="index.html" class="logo">
+        <span class="logo-icon"><i class="fa-solid fa-basketball"></i></span>
+        <span><strong>Basket</strong><b>BF</b></span>
+    </a>
+    <span class="page-title">Administration</span>
+    <div class="page-header-actions">
+        <a href="index.html" class="btn btn-outline-dark">Retour au site</a>
+        <button type="button" class="btn btn-outline-dark" id="adminLogout" hidden>Déconnexion</button>
+    </div>
+</header>
+
+<main class="page-main">
+
+    <section id="gateAdmin" class="card admin-gate" hidden>
+        <h2 id="gateTitle"></h2>
+        <p id="gateText"></p>
+        <a href="index.html" class="btn btn-primary">Retour au site</a>
+    </section>
+
+    <section id="adminApp" hidden>
+
+        <nav class="admin-tabs">
+            <button type="button" class="admin-tab active" data-tab="players">Fiches joueurs</button>
+            <button type="button" class="admin-tab" data-tab="clubs">Clubs</button>
+            <button type="button" class="admin-tab" data-tab="venues">Lieux</button>
+            <button type="button" class="admin-tab" data-tab="competitions">Compétitions</button>
+            <button type="button" class="admin-tab" data-tab="matches">Matchs et scores</button>
+        </nav>
+
+        <p id="adminStatus" class="admin-status" role="status"></p>
+
+        <!-- Fiches joueurs -->
+        <div class="admin-panel card" id="tab-players">
+            <h3>Fiches joueurs</h3>
+            <p class="muted" style="margin-bottom:16px">
+                Rattachez le joueur à un club et publiez sa fiche après vérification.
+                Les joueurs de moins de 18 ans restent masqués du public.
+            </p>
+            <div id="playersList"></div>
+        </div>
+
+        <!-- Clubs -->
+        <div class="admin-panel" id="tab-clubs" hidden>
+            <form id="clubForm" class="card">
+                <h3>Nouveau club</h3>
+                <div class="form-grid">
+                    <label>Nom officiel
+                        <input type="text" id="clubName" required maxlength="80">
+                    </label>
+                    <label>Sigle (2 à 6 lettres)
+                        <input type="text" id="clubShort" required minlength="2" maxlength="6">
+                    </label>
+                    <label>Ville
+                        <input type="text" id="clubCity" required maxlength="60">
+                    </label>
+                </div>
+                <fieldset>
+                    <legend>Équipes</legend>
+                    <label class="check"><input type="checkbox" name="clubGender" value="homme"> Hommes</label>
+                    <label class="check"><input type="checkbox" name="clubGender" value="femme"> Dames</label>
+                </fieldset>
+                <fieldset>
+                    <legend>Catégories</legend>
+                    <label class="check"><input type="checkbox" name="clubCategory" value="Minime"> Minime</label>
+                    <label class="check"><input type="checkbox" name="clubCategory" value="Junior"> Junior</label>
+                    <label class="check"><input type="checkbox" name="clubCategory" value="Espoir"> Espoir</label>
+                    <label class="check"><input type="checkbox" name="clubCategory" value="Senior"> Senior</label>
+                </fieldset>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Créer le club</button>
+                </div>
+            </form>
+            <div class="card" id="clubsList"></div>
+        </div>
+
+        <!-- Lieux -->
+        <div class="admin-panel" id="tab-venues" hidden>
+            <form id="venueForm" class="card">
+                <h3>Nouveau lieu</h3>
+                <div class="form-grid">
+                    <label>Nom
+                        <input type="text" id="venueName" required maxlength="80">
+                    </label>
+                    <label>Ville
+                        <input type="text" id="venueCity" maxlength="60">
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Ajouter le lieu</button>
+                </div>
+            </form>
+            <div class="card" id="venuesList"></div>
+        </div>
+
+        <!-- Compétitions -->
+        <div class="admin-panel" id="tab-competitions" hidden>
+            <form id="compForm" class="card">
+                <h3>Nouvelle compétition</h3>
+                <div class="form-grid">
+                    <label>Nom
+                        <input type="text" id="compName" required maxlength="100">
+                    </label>
+                    <label>Saison
+                        <input type="number" id="compSeason" required min="2000" max="2100">
+                    </label>
+                    <label>Points par victoire
+                        <input type="number" id="compWin" required min="0" value="2">
+                    </label>
+                    <label>Points par défaite
+                        <input type="number" id="compLoss" required min="0" value="1">
+                    </label>
+                </div>
+                <label class="check" style="margin-top:14px">
+                    <input type="checkbox" id="compPublished"> Publier immédiatement sur le site
+                </label>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Créer la compétition</button>
+                </div>
+            </form>
+            <div class="card" id="competitionsList"></div>
+        </div>
+
+        <!-- Matchs et scores -->
+        <div class="admin-panel" id="tab-matches" hidden>
+            <form id="matchForm" class="card">
+                <h3>Nouveau match</h3>
+                <div class="form-grid">
+                    <label>Compétition
+                        <select id="matchComp" required></select>
+                    </label>
+                    <label>Date et heure (UTC)
+                        <input type="datetime-local" id="matchDate" required>
+                    </label>
+                    <label>Équipe à domicile
+                        <select id="matchHome" required></select>
+                    </label>
+                    <label>Équipe à l'extérieur
+                        <select id="matchAway" required></select>
+                    </label>
+                    <label>Lieu
+                        <select id="matchVenue"></select>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Créer le match</button>
+                </div>
+            </form>
+            <div class="card" id="matchesList"></div>
+        </div>
+
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="db.js"></script>
+<script src="admin.js"></script>
+
+</body>
+</html>
